@@ -98,8 +98,10 @@ function initLocationPickerMap(initLat, initLng) {
     const { lat, lng } = e.latlng;
     if (marker) picker.removeLayer(marker);
     marker = L.marker([lat, lng]).addTo(picker);
-    document.getElementById('med-lat').value = lat.toFixed(6);
-    document.getElementById('med-lng').value = lng.toFixed(6);
+    const phLat = document.getElementById('ph-lat');
+    const phLng = document.getElementById('ph-lng');
+    if (phLat) phLat.value = lat.toFixed(6);
+    if (phLng) phLng.value = lng.toFixed(6);
     updateCoordDisplay(lat, lng);
   });
 
