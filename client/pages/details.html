@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medicine Details – MedFinder</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .details-layout { display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-top:2rem; }
+    @media(max-width:768px){ .details-layout{ grid-template-columns:1fr; } }
+    .details-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:2rem; box-shadow:var(--shadow-sm); }
+    .med-hero { width:100%; height:190px; background:linear-gradient(135deg,#4f46e5,#6366f1); border-radius:.75rem; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; margin-bottom:1.5rem; }
+    .med-hero .icon { font-size:4rem; }
+    .details-title { font-size:1.75rem; font-weight:800; margin-bottom:.5rem; }
+    .detail-row { display:flex; align-items:flex-start; gap:1rem; padding:.875rem 0; border-bottom:1px solid var(--border); }
+    .detail-row:last-child { border-bottom:none; }
+    .detail-icon { width:2.25rem; height:2.25rem; background:var(--bg-main); border-radius:.5rem; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+    .detail-label { font-size:.75rem; text-transform:uppercase; font-weight:600; color:var(--text-muted); letter-spacing:.05em; }
+    .detail-value { font-size:.95rem; font-weight:600; }
+    .price-display { font-size:2rem; font-weight:800; color:var(--primary); }
+    .btn-back { display:inline-flex; align-items:center; gap:.5rem; background:var(--bg-card); border:1px solid var(--border); border-radius:.75rem; padding:.65rem 1.25rem; font-weight:600; cursor:pointer; transition:var(--transition); color:var(--text-main); margin-bottom:1.5rem; text-decoration:none; }
+    .btn-back:hover { border-color:var(--primary); color:var(--primary); }
+    #detail-map { height:260px; border-radius:.5rem; }
+    .not-found { text-align:center; padding:5rem 2rem; color:var(--text-muted); }
+  </style>
+</head>
+<body>
+  <div id="notifications"></div>
+
+  <nav class="navbar" role="navigation">
+    <div class="container nav-container">
+      <a href="/" class="logo">💊 MedFinder</a>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="/" class="nav-link">Home</a></li>
+        <li><a href="/pages/login" class="nav-link btn-login">Admin Login</a></li>
+      </ul>
+      <button id="dark-mode-toggle" aria-label="Toggle dark mode" style="background:var(--bg-main);border:1px solid var(--border);border-radius:.5rem;width:2.5rem;height:2.5rem;cursor:pointer;font-size:1.1rem;">🌙</button>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container" style="padding-top:2rem;padding-bottom:4rem;">
+      <a href="/" class="btn-back">← Back to Medicines</a>
+      <div id="details-content"></div>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/map.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const params     = new URLSearchParams(window.location.search);
+      const pharmacyId = params.get('pharmacyId');
+      const medicineId = params.get('medicineId');
+      const container  = document.getElementById('details-content');
+
+      if (!pharmacyId || !medicineId) return renderNotFound(container, 'Missing pharmacyId or medicineId in URL.');
+
+      try {
+        const pharmacy = await API.getPharmacyById(pharmacyId);
+        const medicine = pharmacy.medicines.find(m => m._id === medicineId);
+        if (!medicine) return renderNotFound(container, 'Medicine not found in this pharmacy.');
+        renderDetails(container, pharmacy, medicine);
+      } catch (err) {
+        renderNotFound(container, err.message);
+      }
+    });
+
+    function renderNotFound(container, reason) {
+      container.innerHTML = `
+        <div class="not-found">
+          <div style="font-size:4rem;margin-bottom:1rem;">😕</div>
+          <h1 style="font-size:1.75rem;color:var(--text-main);margin-bottom:.5rem;">Medicine Not Found</h1>
+          <p>${reason}</p>
+          <a href="/" style="display:inline-block;margin-top:1.5rem;background:var(--primary);color:white;padding:.75rem 2rem;border-radius:.75rem;font-weight:600;">← Back to Home</a>
+        </div>`;
+    }
+
+    function renderDetails(container, pharmacy, med) {
+      document.title = `${med.name} – MedFinder`;
+      const avail = med.stock.isAvailable;
+      container.innerHTML = `
+        <div class="details-layout">
+          <div>
+            <div class="med-hero"><span class="icon">💊</span><p style="opacity:.8;margin-top:.5rem;">${med.name}</p></div>
+            <div class="details-card">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:.75rem;">
+                <h1 class="details-title">${med.name}</h1>
+                <span class="badge ${avail ? 'badge-available' : 'badge-unavailable'}" style="white-space:nowrap;">
+                  ${avail ? '✓ Available' : '✗ Out of Stock'}
+                </span>
+              </div>
+              <p style="color:var(--text-muted);margin-bottom:1.5rem;line-height:1.75;">${med.description}</p>
+              <div class="detail-row">
+                <div class="detail-icon">💰</div>
+                <div><div class="detail-label">Price</div>
+                  <div class="price-display">${med.pricing.amount} <span style="font-size:1.25rem;">${med.pricing.currency}</span></div>
+                </div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-icon">📦</div>
+                <div><div class="detail-label">Stock</div>
+                  <div class="detail-value">${avail ? `<span style="color:var(--secondary)">${med.stock.quantity} units in stock</span>` : '<span style="color:var(--error)">Currently out of stock</span>'}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:1.5rem;">
+            <div class="details-card">
+              <p style="font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:1rem;">🏥 Pharmacy Details</p>
+              <div class="detail-row"><div class="detail-icon">🏥</div>
+                <div><div class="detail-label">Name</div><div class="detail-value">${pharmacy.name}</div></div>
+              </div>
+              <div class="detail-row"><div class="detail-icon">📍</div>
+                <div><div class="detail-label">Address</div><div class="detail-value">${pharmacy.address || '—'}</div></div>
+              </div>
+              <div class="detail-row"><div class="detail-icon">📞</div>
+                <div><div class="detail-label">Phone</div>
+                  <div class="detail-value">${pharmacy.phone ? `<a href="tel:${pharmacy.phone}" style="color:var(--primary);">${pharmacy.phone}</a>` : '—'}</div>
+                </div>
+              </div>
+              <div class="detail-row"><div class="detail-icon">🌍</div>
+                <div><div class="detail-label">Coordinates</div>
+                  <div class="detail-value" style="font-family:monospace;font-size:.85rem;">${pharmacy.location.lat.toFixed(4)}, ${pharmacy.location.lng.toFixed(4)}</div>
+                </div>
+              </div>
+            </div>
+            <div class="details-card" style="padding:1.25rem;">
+              <p style="font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:1rem;">📍 Location on Map</p>
+              <div id="detail-map"></div>
+            </div>
+          </div>
+        </div>`;
+      initDetailMap(pharmacy.location.lat, pharmacy.location.lng, pharmacy.name);
+    }
+  </script>
+</body>
+</html>

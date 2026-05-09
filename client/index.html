@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedFinder – Find Medicines & Nearby Pharmacies</title>
+  <meta name="description" content="Search for medicines, check availability, compare prices, and locate nearby pharmacies." />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    #dark-mode-toggle { background:var(--bg-main); border:1px solid var(--border); border-radius:.5rem; width:2.5rem; height:2.5rem; cursor:pointer; font-size:1.1rem; display:flex; align-items:center; justify-content:center; transition:var(--transition); }
+    #dark-mode-toggle:hover { border-color:var(--primary); }
+    #hamburger { display:none; background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-main); }
+    .stats-row { display:flex; gap:2rem; margin-top:2rem; justify-content:center; flex-wrap:wrap; }
+    .stat { text-align:center; }
+    .stat-number { font-size:2.5rem; font-weight:800; color:white; }
+    .stat-label  { font-size:.9rem; opacity:.8; }
+    .section-controls { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1rem; }
+    #search-input { padding:.75rem 1rem .75rem 2.75rem; border:1px solid var(--border); border-radius:.75rem; font-size:.95rem; outline:none; width:300px; background:var(--bg-card); color:var(--text-main); transition:var(--transition); }
+    #search-input:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(79,70,229,.1); }
+    #section-search-wrap { position:relative; }
+    .search-icon-sm { position:absolute; left:.9rem; top:50%; transform:translateY(-50%); color:var(--text-muted); }
+    @media (max-width:768px) {
+      #hamburger { display:block; }
+      #nav-links { display:none; position:absolute; top:4.5rem; left:0; right:0; background:var(--bg-card); border-bottom:1px solid var(--border); padding:1rem; flex-direction:column; gap:1rem; z-index:999; }
+      #nav-links.nav-open { display:flex; }
+    }
+  </style>
+</head>
+<body>
+  <div id="notifications"></div>
+
+  <!-- NAVBAR -->
+  <nav class="navbar" role="navigation">
+    <div class="container nav-container">
+      <a href="/" class="logo">💊 MedFinder</a>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="/" class="nav-link">Home</a></li>
+        <li><a href="#search-section" class="nav-link">Search</a></li>
+        <li><a href="#pharmacies-section" class="nav-link">Pharmacies</a></li>
+        <li><a href="/pages/login" class="nav-link btn-login">Admin Login</a></li>
+      </ul>
+      <div style="display:flex;gap:.75rem;align-items:center;">
+        <button id="dark-mode-toggle" aria-label="Toggle dark mode">🌙</button>
+        <button id="hamburger" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" aria-label="Hero">
+    <div class="container">
+      <h1>Find Your Medicine,<br>Fast & Easy 💊</h1>
+      <p>Search medicines, check availability, compare prices, and locate nearby pharmacies in Addis Ababa.</p>
+      <div class="search-container">
+        <span class="search-icon">🔍</span>
+        <input type="search" class="search-bar" id="hero-search" placeholder="Search Paracetamol, Amoxicillin..." autocomplete="off" aria-label="Search medicines" />
+      </div>
+      <div class="stats-row" id="stats-row">
+        <div class="stat"><div class="stat-number" id="stat-total">—</div><div class="stat-label">Medicines</div></div>
+        <div class="stat"><div class="stat-number" id="stat-avail">—</div><div class="stat-label">In Stock</div></div>
+        <div class="stat"><div class="stat-number" id="stat-pharms">—</div><div class="stat-label">Pharmacies</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEARCH RESULTS -->
+  <section id="search-section" aria-label="Search results">
+    <div class="container">
+      <div class="section-controls">
+        <div>
+          <h2 class="section-title">All Medicines</h2>
+          <p class="section-subtitle">Browse and search our medicine database</p>
+        </div>
+        <div id="section-search-wrap">
+          <span class="search-icon-sm">🔍</span>
+          <input type="search" id="search-input" placeholder="Filter medicines..." autocomplete="off" />
+        </div>
+      </div>
+      <div class="medicine-grid" id="medicine-grid" role="list"></div>
+    </div>
+  </section>
+
+  <!-- MAP -->
+  <section style="background:var(--bg-card);border-top:1px solid var(--border);" id="pharmacies-section">
+    <div class="container">
+      <h2 class="section-title">Nearby Pharmacies 📍</h2>
+      <p class="section-subtitle">Click a marker to see medicines and prices</p>
+      <div id="map" role="application" aria-label="Pharmacy map"></div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer style="background:var(--bg-card);border-top:1px solid var(--border);padding:2rem 0;text-align:center;color:var(--text-muted);">
+    <p>💊 <strong>MedFinder</strong> — Helping you find medicines faster.</p>
+    <p style="font-size:.875rem;margin-top:.5rem;">Built with Node.js, MongoDB &amp; Leaflet.js</p>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/search.js"></script>
+  <script src="/js/map.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Hero search syncs to section search
+      const heroInput = document.getElementById('hero-search');
+      const secInput  = document.getElementById('search-input');
+      heroInput?.addEventListener('input', e => {
+        secInput.value = e.target.value;
+        secInput.dispatchEvent(new Event('input'));
+        document.getElementById('search-section').scrollIntoView({ behavior:'smooth' });
+      });
+
+      // Load stats from API
+      try {
+        const pharmacies = await API.getPharmacies();
+        const allMeds  = pharmacies.flatMap(p => p.medicines);
+        const avail    = allMeds.filter(m => m.stock.isAvailable).length;
+        document.getElementById('stat-total').textContent  = allMeds.length;
+        document.getElementById('stat-avail').textContent  = avail;
+        document.getElementById('stat-pharms').textContent = pharmacies.length;
+      } catch (_) {}
+    });
+  </script>
+</body>
+</html>
