@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Medicine Details – MedFinder</title>
+  <title>Details – MedFinder</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="/css/style.css" />
   <style>
@@ -11,7 +11,8 @@
     @media(max-width:768px){ .details-layout{ grid-template-columns:1fr; } }
     .details-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:2rem; box-shadow:var(--shadow-sm); }
     .med-hero { width:100%; height:190px; background:linear-gradient(135deg,#4f46e5,#6366f1); border-radius:.75rem; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; margin-bottom:1.5rem; }
-    .med-hero .icon { font-size:4rem; }
+    .ph-hero  { width:100%; height:190px; background:linear-gradient(135deg,#0891b2,#0284c7); border-radius:.75rem; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; margin-bottom:1.5rem; }
+    .med-hero .icon, .ph-hero .icon { font-size:4rem; }
     .details-title { font-size:1.75rem; font-weight:800; margin-bottom:.5rem; }
     .detail-row { display:flex; align-items:flex-start; gap:1rem; padding:.875rem 0; border-bottom:1px solid var(--border); }
     .detail-row:last-child { border-bottom:none; }
@@ -23,6 +24,17 @@
     .btn-back:hover { border-color:var(--primary); color:var(--primary); }
     #detail-map { height:260px; border-radius:.5rem; }
     .not-found { text-align:center; padding:5rem 2rem; color:var(--text-muted); }
+    /* Pharmacy medicines list */
+    .med-list { display:flex; flex-direction:column; gap:.75rem; margin-top:1rem; }
+    .med-list-item {
+      display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;
+      gap:.5rem; padding:.875rem 1rem; border-radius:.75rem;
+      background:var(--bg-main); border:1px solid var(--border);
+    }
+    .med-list-name { font-weight:700; font-size:.95rem; }
+    .med-list-meta { font-size:.82rem; color:var(--text-muted); margin-top:.1rem; }
+    .med-list-right { display:flex; align-items:center; gap:.75rem; flex-shrink:0; }
+    .med-list-price { font-weight:700; color:var(--primary); }
   </style>
 </head>
 <body>
@@ -41,7 +53,7 @@
 
   <main>
     <div class="container" style="padding-top:2rem;padding-bottom:4rem;">
-      <a href="/" class="btn-back">← Back to Medicines</a>
+      <a href="/" class="btn-back">← Back to Home</a>
       <div id="details-content"></div>
     </div>
   </main>
@@ -57,13 +69,20 @@
       const medicineId = params.get('medicineId');
       const container  = document.getElementById('details-content');
 
-      if (!pharmacyId || !medicineId) return renderNotFound(container, 'Missing pharmacyId or medicineId in URL.');
+      if (!pharmacyId) return renderNotFound(container, 'Missing pharmacyId in URL.');
 
       try {
         const pharmacy = await API.getPharmacyById(pharmacyId);
-        const medicine = pharmacy.medicines.find(m => m._id === medicineId);
-        if (!medicine) return renderNotFound(container, 'Medicine not found in this pharmacy.');
-        renderDetails(container, pharmacy, medicine);
+
+        if (medicineId) {
+          // Medicine detail view (from medicine search cards)
+          const medicine = pharmacy.medicines.find(m => m._id === medicineId);
+          if (!medicine) return renderNotFound(container, 'Medicine not found in this pharmacy.');
+          renderMedicineDetails(container, pharmacy, medicine);
+        } else {
+          // Pharmacy profile view (from location search "View Details")
+          renderPharmacyProfile(container, pharmacy);
+        }
       } catch (err) {
         renderNotFound(container, err.message);
       }
@@ -73,13 +92,14 @@
       container.innerHTML = `
         <div class="not-found">
           <div style="font-size:4rem;margin-bottom:1rem;">😕</div>
-          <h1 style="font-size:1.75rem;color:var(--text-main);margin-bottom:.5rem;">Medicine Not Found</h1>
+          <h1 style="font-size:1.75rem;color:var(--text-main);margin-bottom:.5rem;">Not Found</h1>
           <p>${reason}</p>
           <a href="/" style="display:inline-block;margin-top:1.5rem;background:var(--primary);color:white;padding:.75rem 2rem;border-radius:.75rem;font-weight:600;">← Back to Home</a>
         </div>`;
     }
 
-    function renderDetails(container, pharmacy, med) {
+    // ── MEDICINE DETAIL VIEW (pharmacyId + medicineId) ──────────
+    function renderMedicineDetails(container, pharmacy, med) {
       document.title = `${med.name} – MedFinder`;
       const avail = med.stock.isAvailable;
       container.innerHTML = `
@@ -103,7 +123,9 @@
               <div class="detail-row">
                 <div class="detail-icon">📦</div>
                 <div><div class="detail-label">Stock</div>
-                  <div class="detail-value">${avail ? `<span style="color:var(--secondary)">${med.stock.quantity} units in stock</span>` : '<span style="color:var(--error)">Currently out of stock</span>'}</div>
+                  <div class="detail-value">${avail
+                    ? `<span style="color:var(--secondary)">${med.stock.quantity} units in stock</span>`
+                    : '<span style="color:var(--error)">Currently out of stock</span>'}</div>
                 </div>
               </div>
             </div>
@@ -119,7 +141,9 @@
               </div>
               <div class="detail-row"><div class="detail-icon">📞</div>
                 <div><div class="detail-label">Phone</div>
-                  <div class="detail-value">${pharmacy.phone ? `<a href="tel:${pharmacy.phone}" style="color:var(--primary);">${pharmacy.phone}</a>` : '—'}</div>
+                  <div class="detail-value">${pharmacy.phone
+                    ? `<a href="tel:${pharmacy.phone}" style="color:var(--primary);">${pharmacy.phone}</a>`
+                    : '—'}</div>
                 </div>
               </div>
               <div class="detail-row"><div class="detail-icon">🌍</div>
@@ -134,6 +158,82 @@
             </div>
           </div>
         </div>`;
+      initDetailMap(pharmacy.location.lat, pharmacy.location.lng, pharmacy.name);
+    }
+
+    // ── PHARMACY PROFILE VIEW (pharmacyId only) ─────────────────
+    function renderPharmacyProfile(container, pharmacy) {
+      document.title = `${pharmacy.name} – MedFinder`;
+      const available = pharmacy.medicines.filter(m => m.stock.isAvailable);
+
+      const medItem = (med) => {
+        const avail = med.stock.isAvailable;
+        return `
+          <div class="med-list-item">
+            <div>
+              <div class="med-list-name">💊 ${med.name}</div>
+              <div class="med-list-meta">${med.description || ''}</div>
+            </div>
+            <div class="med-list-right">
+              <span class="med-list-price">${med.pricing.amount} ${med.pricing.currency}</span>
+              <span class="badge ${avail ? 'badge-available' : 'badge-unavailable'}" style="font-size:.75rem;">
+                ${avail ? '✓ In Stock' : '✗ Out'}
+              </span>
+            </div>
+          </div>`;
+      };
+
+      container.innerHTML = `
+        <div class="details-layout">
+          <div>
+            <div class="ph-hero">
+              <span class="icon">🏥</span>
+              <p style="opacity:.85;margin-top:.5rem;font-weight:700;">${pharmacy.name}</p>
+            </div>
+            <div class="details-card">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:.75rem;">
+                <h1 class="details-title">${pharmacy.name}</h1>
+                <span class="badge badge-available" style="white-space:nowrap;">${available.length} in stock</span>
+              </div>
+              <div class="detail-row"><div class="detail-icon">📍</div>
+                <div><div class="detail-label">Address</div><div class="detail-value">${pharmacy.address || '—'}</div></div>
+              </div>
+              <div class="detail-row"><div class="detail-icon">📞</div>
+                <div><div class="detail-label">Phone</div>
+                  <div class="detail-value">${pharmacy.phone
+                    ? `<a href="tel:${pharmacy.phone}" style="color:var(--primary);">${pharmacy.phone}</a>`
+                    : '—'}</div>
+                </div>
+              </div>
+              <div class="detail-row"><div class="detail-icon">💊</div>
+                <div><div class="detail-label">Total Medicines</div>
+                  <div class="detail-value">${pharmacy.medicines.length} listed (${available.length} available)</div>
+                </div>
+              </div>
+              <div class="detail-row"><div class="detail-icon">🌍</div>
+                <div><div class="detail-label">Coordinates</div>
+                  <div class="detail-value" style="font-family:monospace;font-size:.85rem;">${pharmacy.location.lat.toFixed(4)}, ${pharmacy.location.lng.toFixed(4)}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:1.5rem;">
+            <div class="details-card" style="padding:1.25rem;">
+              <p style="font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:1rem;">📍 Location on Map</p>
+              <div id="detail-map"></div>
+            </div>
+            <div class="details-card">
+              <p style="font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:1rem;">
+                💊 All Medicines (${pharmacy.medicines.length})
+              </p>
+              ${pharmacy.medicines.length
+                ? `<div class="med-list">${pharmacy.medicines.map(medItem).join('')}</div>`
+                : `<p style="color:var(--text-muted);text-align:center;padding:1.5rem;">No medicines registered yet.</p>`
+              }
+            </div>
+          </div>
+        </div>`;
+
       initDetailMap(pharmacy.location.lat, pharmacy.location.lng, pharmacy.name);
     }
   </script>
