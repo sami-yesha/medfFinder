@@ -62,6 +62,9 @@ const API = {
   // Cross-pharmacy medicine search → [{pharmacy, medicine}]
   search: (query = '') => request(`/search?medicine=${encodeURIComponent(query)}`),
 
+  // Location-based pharmacy search → [{_id, name, address, phone, location, medicineCount, availableCount}]
+  searchPharmaciesByLocation: (query = '') => request(`/pharmacies/search?query=${encodeURIComponent(query)}`),
+
   // One-time database seed
   seed: () => request('/pharmacies/seed')
 };

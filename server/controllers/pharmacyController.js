@@ -161,4 +161,36 @@ const seedData = async (req, res) => {
   }
 };
 
-module.exports = { getAllPharmacies, getPharmacyById, createPharmacy, updatePharmacy, deletePharmacy, searchMedicines, seedData };
+// ── GET /api/pharmacies/search?query=Addis Ababa ─────────────
+// Searches pharmacies by address text using regex (stored data only)
+const searchPharmaciesByLocation = async (req, res) => {
+  try {
+    const query = (req.query.query || '').trim();
+
+    let pharmacies;
+    if (!query) {
+      pharmacies = await Pharmacy.find().sort({ name: 1 });
+    } else {
+      pharmacies = await Pharmacy.find({
+        address: { $regex: query, $options: 'i' }
+      }).sort({ name: 1 });
+    }
+
+    // Return pharmacy info + medicine count summary
+    const results = pharmacies.map(ph => ({
+      _id: ph._id,
+      name: ph.name,
+      address: ph.address,
+      phone: ph.phone,
+      location: ph.location,
+      medicineCount: ph.medicines.length,
+      availableCount: ph.medicines.filter(m => m.stock.isAvailable).length
+    }));
+
+    res.json(results);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+module.exports = { getAllPharmacies, getPharmacyById, createPharmacy, updatePharmacy, deletePharmacy, searchMedicines, seedData, searchPharmaciesByLocation };
