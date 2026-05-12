@@ -166,14 +166,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (!searchBtn || !searchInput) return;
 
+  let debounceTimer = null;
+  const DEBOUNCE_MS = 400;
+
   const doSearch = () => {
     const q = searchInput.value.trim();
-    handleLocationSearch(q);
+    toggleClear();
+    if (q) handleLocationSearch(q);
   };
+
+  const toggleClear = () => {
+    if (clearBtn) clearBtn.style.display = searchInput.value.trim() ? '' : 'none';
+  };
+
+  // Live search as user types (debounced)
+  searchInput.addEventListener('input', () => {
+    toggleClear();
+    clearTimeout(debounceTimer);
+    const q = searchInput.value.trim();
+    if (q.length < 2) return;          // wait for at least 2 chars
+    debounceTimer = setTimeout(() => handleLocationSearch(q), DEBOUNCE_MS);
+  });
 
   searchBtn.addEventListener('click', doSearch);
   searchInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') doSearch();
+    if (e.key === 'Enter') { clearTimeout(debounceTimer); doSearch(); }
   });
 
   // Clear button
@@ -183,6 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('location-grid').innerHTML = '';
       document.getElementById('location-count').textContent = '';
       clearLocationMarkers();
+      clearBtn.style.display = 'none';
       // Restore all pharmacy markers
       if (typeof initPharmaciesMap === 'function' && !document.getElementById('map')._leaflet_id) {
         initPharmaciesMap();

@@ -117,7 +117,6 @@
         <li><a href="#search-section" class="nav-link">Medicines</a></li>
         <li><a href="#location-search-section" class="nav-link">By Location</a></li>
         <li><a href="#pharmacies-section" class="nav-link">Map</a></li>
-        <li><a href="/pages/login" class="nav-link btn-login">Admin Login</a></li>
       </ul>
       <div style="display:flex;gap:.75rem;align-items:center;">
         <button id="dark-mode-toggle" aria-label="Toggle dark mode">🌙</button>
@@ -175,7 +174,7 @@
           autocomplete="off"
           aria-label="Search pharmacies by location" />
         <button id="loc-search-btn">🔍 Search</button>
-        <button id="loc-clear-btn" title="Clear results">✕ Clear</button>
+        <button id="loc-clear-btn" title="Clear results" style="display:none;">✕ Clear</button>
       </div>
 
       <!-- Quick Hint Chips -->
@@ -210,7 +209,6 @@
   <!-- FOOTER -->
   <footer style="background:var(--bg-card);border-top:1px solid var(--border);padding:2rem 0;text-align:center;color:var(--text-muted);">
     <p>💊 <strong>MedFinder</strong> — Helping you find medicines faster.</p>
-    <p style="font-size:.875rem;margin-top:.5rem;">Built with Node.js, MongoDB &amp; Leaflet.js</p>
   </footer>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
