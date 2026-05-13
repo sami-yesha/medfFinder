@@ -31,11 +31,11 @@ async function loadPharmacies() {
 
     tbody.innerHTML = pharmacies.map(ph => `
       <tr>
-        <td><strong>${ph.name}</strong></td>
-        <td style="font-size:.85rem;color:var(--text-muted);">${ph.address}</td>
-        <td>${ph.phone || '—'}</td>
-        <td><span class="badge badge-available">${ph.medicines.length} medicines</span></td>
-        <td>
+        <td data-label="Name"><strong>${ph.name}</strong></td>
+        <td data-label="Address" style="font-size:.85rem;color:var(--text-muted);">${ph.address}</td>
+        <td data-label="Phone">${ph.phone || '—'}</td>
+        <td data-label="Medicines"><span class="badge badge-available">${ph.medicines.length} medicines</span></td>
+        <td data-label="Actions">
           <div class="actions">
             <button class="btn-action btn-edit"   onclick="openPharmacyModal('${ph._id}')" title="Edit">✏️</button>
             <button class="btn-action"
@@ -166,13 +166,13 @@ function renderMedicinesTable(medicines) {
 
   tbody.innerHTML = medicines.map(m => `
     <tr>
-      <td><strong>${m.name}</strong><br><small style="color:var(--text-muted);">${m.description}</small></td>
-      <td><span class="badge ${m.stock.isAvailable ? 'badge-available' : 'badge-unavailable'}">
+      <td data-label="Medicine"><strong>${m.name}</strong><br><small style="color:var(--text-muted);">${m.description}</small></td>
+      <td data-label="Status"><span class="badge ${m.stock.isAvailable ? 'badge-available' : 'badge-unavailable'}">
         ${m.stock.isAvailable ? '✓ Available' : '✗ Out of Stock'}
       </span></td>
-      <td>${m.stock.quantity}</td>
-      <td><strong>${m.pricing.amount} ${m.pricing.currency}</strong></td>
-      <td>
+      <td data-label="Qty">${m.stock.quantity}</td>
+      <td data-label="Price"><strong>${m.pricing.amount} ${m.pricing.currency}</strong></td>
+      <td data-label="Actions">
         <div class="actions">
           <button class="btn-action btn-edit"   onclick="openMedicineModal('${m._id}')" title="Edit">✏️</button>
           <button class="btn-action btn-delete" onclick="handleDeleteMedicine('${m._id}','${m.name}')" title="Delete">🗑️</button>
