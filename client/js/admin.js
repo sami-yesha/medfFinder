@@ -260,9 +260,32 @@ function handleLogout() {
   setTimeout(() => { window.location.href = '/pages/login'; }, 800);
 }
 
+// ── Sidebar Toggle (Mobile) ───────────────────────────────────
+function initAdminSidebar() {
+  const hamburger = document.getElementById('hamburger-admin');
+  const sidebar   = document.querySelector('.sidebar');
+  const overlay   = document.getElementById('sidebar-overlay');
+
+  const toggle = () => {
+    sidebar?.classList.toggle('active');
+    overlay?.classList.toggle('active');
+  };
+
+  hamburger?.addEventListener('click', toggle);
+  overlay?.addEventListener('click', toggle);
+  
+  // Close sidebar when clicking links on mobile
+  document.querySelectorAll('.sidebar-nav-item').forEach(link => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth <= 768) toggle();
+    });
+  });
+}
+
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   checkAuth();
+  initAdminSidebar();
 
   // Show admin name
   const admin = JSON.parse(sessionStorage.getItem('medfinder_admin') || '{}');
