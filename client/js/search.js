@@ -8,7 +8,7 @@ function createMedicineCard(result) {
   const { pharmacy, medicine } = result;
   const avail     = medicine.stock.isAvailable;
   const badgeCls  = avail ? 'badge-available' : 'badge-unavailable';
-  const badgeTxt  = avail ? '✓ Available' : '✗ Out of Stock';
+  const badgeTxt  = avail ? `✓ ${i18n.t('search.available')}` : `✗ ${i18n.t('search.out_of_stock')}`;
   const detailUrl = `/pages/details?pharmacyId=${pharmacy._id}&medicineId=${medicine._id}`;
 
   return `
@@ -20,27 +20,27 @@ function createMedicineCard(result) {
       <p class="card-desc">${medicine.description}</p>
       <div class="card-info">
         <div class="info-item">
-          <span class="info-label">📦 Quantity</span>
-          <span class="info-value">${avail ? medicine.stock.quantity + ' units' : '—'}</span>
+          <span class="info-label">📦 ${i18n.t('search.quantity')}</span>
+          <span class="info-value">${avail ? medicine.stock.quantity + ' ' + i18n.t('search.units') : '—'}</span>
         </div>
         <div class="info-item">
-          <span class="info-label">💰 Price</span>
+          <span class="info-label">💰 ${i18n.t('search.price')}</span>
           <span class="info-value" style="color:var(--primary);font-size:1.05rem;">
             ${medicine.pricing.amount} ${medicine.pricing.currency}
           </span>
         </div>
         <div class="info-item">
-          <span class="info-label">🏥 Pharmacy</span>
+          <span class="info-label">🏥 ${i18n.t('search.pharmacy')}</span>
           <span class="info-value">${pharmacy.name}</span>
         </div>
         <div class="info-item">
-          <span class="info-label">📍 Address</span>
+          <span class="info-label">📍 ${i18n.t('search.address')}</span>
           <span class="info-value" style="font-size:0.85rem;">${pharmacy.address}</span>
         </div>
       </div>
       <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
         <a href="${detailUrl}" class="btn-view" style="flex:1;text-align:center;">
-          View Details →
+          ${i18n.t('search.view_details')}
         </a>
         <button class="btn-view"
           onclick="openPharmacyPopup('${pharmacy.name}')"
@@ -60,8 +60,8 @@ function renderCards(results) {
     grid.innerHTML = `
       <div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;color:var(--text-muted);">
         <div style="font-size:4rem;margin-bottom:1rem;">🔍</div>
-        <h3 style="color:var(--text-main);margin-bottom:0.5rem;">No Medicine Found</h3>
-        <p>Try a different search term.</p>
+        <h3 style="color:var(--text-main);margin-bottom:0.5rem;">${i18n.t('search.no_medicine_found')}</h3>
+        <p>${i18n.t('search.try_different')}</p>
       </div>`;
     return;
   }
@@ -72,7 +72,7 @@ function renderCards(results) {
 async function handleSearch(query) {
   const grid = document.getElementById('medicine-grid');
   if (!grid) return;
-  grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted);">⏳ Searching...</div>`;
+  grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted);">⏳ ${i18n.t('search.searching')}</div>`;
   try {
     const results = await API.search(query);
     renderCards(results);
@@ -98,4 +98,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       debounce = setTimeout(() => handleSearch(e.target.value), 300);
     });
   });
+
+  // Listen for language changes to re-render
+  window.addEventListener('languageChanged', () => {
+    const query = document.getElementById('search-input')?.value || '';
+    handleSearch(query);
+  });
 });
+

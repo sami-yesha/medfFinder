@@ -111,14 +111,18 @@
   <!-- NAVBAR -->
   <nav class="navbar" role="navigation">
     <div class="container nav-container">
-      <a href="/" class="logo">💊 MedFinder</a>
+      <a href="/" class="logo">💊 <span data-i18n="common.app_name">MedFinder</span></a>
       <ul class="nav-links" id="nav-links">
-        <li><a href="/" class="nav-link">Home</a></li>
-        <li><a href="#search-section" class="nav-link">Medicines</a></li>
-        <li><a href="#location-search-section" class="nav-link">By Location</a></li>
-        <li><a href="#pharmacies-section" class="nav-link">Map</a></li>
+        <li><a href="/" class="nav-link" data-i18n="nav.home">Home</a></li>
+        <li><a href="#search-section" class="nav-link" data-i18n="nav.medicines">Medicines</a></li>
+        <li><a href="#location-search-section" class="nav-link" data-i18n="nav.by_location">By Location</a></li>
+        <li><a href="#pharmacies-section" class="nav-link" data-i18n="nav.map">Map</a></li>
       </ul>
       <div style="display:flex;gap:.75rem;align-items:center;">
+        <select id="language-switcher" aria-label="Select Language" onchange="i18n.switchLanguage(this.value)">
+          <option value="en">English</option>
+          <option value="am">አማርኛ</option>
+        </select>
         <button id="dark-mode-toggle" aria-label="Toggle dark mode">🌙</button>
         <button id="hamburger" aria-label="Menu">☰</button>
       </div>
@@ -128,16 +132,16 @@
   <!-- HERO -->
   <section class="hero" aria-label="Hero">
     <div class="container">
-      <h1>Find Your Medicine,<br>Fast & Easy 💊</h1>
-      <p>Search medicines, check availability, compare prices, and locate nearby pharmacies in Ethiopia.</p>
+      <h1 data-i18n="hero.title">Find Your Medicine,<br>Fast & Easy 💊</h1>
+      <p data-i18n="hero.subtitle">Search medicines, check availability, compare prices, and locate nearby pharmacies in Ethiopia.</p>
       <div class="search-container">
         <span class="search-icon">🔍</span>
-        <input type="search" class="search-bar" id="hero-search" placeholder="Search Paracetamol, Amoxicillin..." autocomplete="off" aria-label="Search medicines" />
+        <input type="search" class="search-bar" id="hero-search" placeholder="Search Paracetamol, Amoxicillin..." data-i18n="hero.search_placeholder" autocomplete="off" aria-label="Search medicines" />
       </div>
       <div class="stats-row" id="stats-row">
-        <div class="stat"><div class="stat-number" id="stat-total">—</div><div class="stat-label">Medicines</div></div>
-        <div class="stat"><div class="stat-number" id="stat-avail">—</div><div class="stat-label">In Stock</div></div>
-        <div class="stat"><div class="stat-number" id="stat-pharms">—</div><div class="stat-label">Pharmacies</div></div>
+        <div class="stat"><div class="stat-number" id="stat-total">—</div><div class="stat-label" data-i18n="hero.stats.medicines">Medicines</div></div>
+        <div class="stat"><div class="stat-number" id="stat-avail">—</div><div class="stat-label" data-i18n="hero.stats.in_stock">In Stock</div></div>
+        <div class="stat"><div class="stat-number" id="stat-pharms">—</div><div class="stat-label" data-i18n="hero.stats.pharmacies">Pharmacies</div></div>
       </div>
     </div>
   </section>
@@ -147,12 +151,12 @@
     <div class="container">
       <div class="section-controls">
         <div>
-          <h2 class="section-title">All Medicines</h2>
-          <p class="section-subtitle">Browse and search our medicine database</p>
+          <h2 class="section-title" data-i18n="search.title">All Medicines</h2>
+          <p class="section-subtitle" data-i18n="search.subtitle">Browse and search our medicine database</p>
         </div>
         <div id="section-search-wrap">
           <span class="search-icon-sm">🔍</span>
-          <input type="search" id="search-input" placeholder="Filter medicines..." autocomplete="off" />
+          <input type="search" id="search-input" placeholder="Filter medicines..." data-i18n="search.filter_placeholder" autocomplete="off" />
         </div>
       </div>
       <div class="medicine-grid" id="medicine-grid" role="list"></div>
@@ -162,8 +166,8 @@
   <!-- LOCATION SEARCH SECTION -->
   <section id="location-search-section" aria-label="Find pharmacies by location">
     <div class="container">
-      <h2 class="section-title">Find Pharmacies by Location 📍</h2>
-      <p class="section-subtitle">Search pharmacies by city or area — results come directly from our database</p>
+      <h2 class="section-title" data-i18n="location.title">Find Pharmacies by Location 📍</h2>
+      <p class="section-subtitle" data-i18n="location.subtitle">Search pharmacies by city or area — results come directly from our database</p>
 
       <!-- Search Box -->
       <div class="loc-search-box">
@@ -171,10 +175,11 @@
           type="search"
           id="loc-search-input"
           placeholder="e.g. Mekane Selam,Dessie, Gimba"
+          data-i18n="location.input_placeholder"
           autocomplete="off"
           aria-label="Search pharmacies by location" />
-        <button id="loc-search-btn">🔍 Search</button>
-        <button id="loc-clear-btn" title="Clear results" style="display:none;">✕ Clear</button>
+        <button id="loc-search-btn" data-i18n="location.search_btn">🔍 Search</button>
+        <button id="loc-clear-btn" title="Clear results" style="display:none;" data-i18n="location.clear_btn">✕ Clear</button>
       </div>
 
       <!-- Quick Hint Chips -->
@@ -185,7 +190,7 @@
       </div>
 
       <!-- Loading & Result Count -->
-      <div id="location-spinner">⏳ Searching pharmacies…</div>
+      <div id="location-spinner" data-i18n="location.searching">⏳ Searching pharmacies…</div>
       <div class="loc-meta">
         <span id="location-count"></span>
       </div>
@@ -198,18 +203,19 @@
   <!-- MAP -->
   <section style="background:var(--bg-card);border-top:1px solid var(--border);" id="pharmacies-section">
     <div class="container">
-      <h2 class="section-title">Pharmacy Map 🗺️</h2>
-      <p class="section-subtitle">All pharmacies plotted — search by location above to filter markers</p>
+      <h2 class="section-title" data-i18n="map.title">Pharmacy Map 🗺️</h2>
+      <p class="section-subtitle" data-i18n="map.subtitle">All pharmacies plotted — search by location above to filter markers</p>
       <div id="map" role="application" aria-label="Pharmacy map"></div>
     </div>
   </section>
 
   <!-- FOOTER -->
   <footer style="background:var(--bg-card);border-top:1px solid var(--border);padding:2rem 0;text-align:center;color:var(--text-muted);">
-    <p>💊 <strong>MedFinder</strong> — Helping you find medicines faster.</p>
+    <p>💊 <strong><span data-i18n="common.app_name">MedFinder</span> — <span data-i18n="footer.tagline">Helping you find medicines faster.</span></strong></p>
   </footer>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/js/i18n.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/app.js"></script>
   <script src="/js/search.js"></script>
@@ -217,6 +223,9 @@
   <script src="/js/locationSearch.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
+      // Initialize i18n
+      await i18n.init();
+
       // Hero search syncs to section search
       const heroInput = document.getElementById('hero-search');
       const secInput  = document.getElementById('search-input');

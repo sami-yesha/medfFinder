@@ -11,31 +11,31 @@ let locationMapRef  = null;    // Shared reference to mapInstance from map.js
 // ── Card Template ────────────────────────────────────────────
 function createPharmacyCard(ph, index) {
   const availBadge = ph.availableCount > 0
-    ? `<span class="loc-badge loc-badge-avail">✓ ${ph.availableCount} in stock</span>`
-    : `<span class="loc-badge loc-badge-none">No stock</span>`;
+    ? `<span class="loc-badge loc-badge-avail">✓ ${ph.availableCount} ${i18n.t('location.in_stock')}</span>`
+    : `<span class="loc-badge loc-badge-none">${i18n.t('location.no_stock')}</span>`;
 
   return `
     <div class="loc-card" id="loc-card-${index}" role="listitem">
       <div class="loc-card-header">
         <div>
           <h3 class="loc-card-title">🏥 ${ph.name}</h3>
-          <p class="loc-card-address">📍 ${ph.address || 'Address not available'}</p>
+          <p class="loc-card-address">📍 ${ph.address || i18n.t('location.addr_not_avail')}</p>
         </div>
         ${availBadge}
       </div>
       <div class="loc-card-info">
-        <span class="loc-info-item">📞 ${ph.phone || 'No phone'}</span>
-        <span class="loc-info-item">💊 ${ph.medicineCount} medicine${ph.medicineCount !== 1 ? 's' : ''} listed</span>
+        <span class="loc-info-item">📞 ${ph.phone || i18n.t('location.phone_not_avail')}</span>
+        <span class="loc-info-item">💊 ${ph.medicineCount === 1 ? i18n.t('location.one_med_listed') : i18n.t('location.meds_listed', { count: ph.medicineCount })}</span>
       </div>
       <div class="loc-card-actions">
         <button
           class="loc-btn-map"
           onclick="focusLocationMarker(${index})"
-          title="View on map">
-          📍 View on Map
+          title="${i18n.t('location.view_on_map')}">
+          📍 ${i18n.t('location.view_on_map')}
         </button>
         <a href="/pages/details?pharmacyId=${ph._id}" class="loc-btn-details">
-          View Details →
+          ${i18n.t('location.view_details')}
         </a>
       </div>
     </div>`;
@@ -65,9 +65,9 @@ function plotLocationMarkers(pharmacies) {
         <p style="margin:0 0 .55rem;font-size:.82rem;color:#64748b;">📞 ${ph.phone || '—'}</p>
         <hr style="border:none;border-top:1px solid #e2e8f0;margin-bottom:.55rem;">
         <p style="font-size:.82rem;font-weight:600;">
-          💊 ${ph.medicineCount} listed &nbsp;|&nbsp;
+          💊 ${ph.medicineCount} ${i18n.t('nav.medicines')} &nbsp;|&nbsp;
           <span style="color:${ph.availableCount > 0 ? '#22c55e' : '#ef4444'}">
-            ${ph.availableCount > 0 ? '✓ ' + ph.availableCount + ' in stock' : '✗ None in stock'}
+            ${ph.availableCount > 0 ? '✓ ' + ph.availableCount + ' ' + i18n.t('location.in_stock') : '✗ ' + i18n.t('location.none_in_stock')}
           </span>
         </p>
       </div>`;
@@ -109,15 +109,15 @@ function renderLocationCards(pharmacies, query) {
     grid.innerHTML = `
       <div class="loc-empty">
         <div class="loc-empty-icon">📍</div>
-        <h3>No Pharmacies Found</h3>
-        <p>No pharmacies matched "<strong>${query}</strong>". Try "Addis Ababa", "Bole", or "Piassa".</p>
+        <h3>${i18n.t('location.no_pharm_found')}</h3>
+        <p>${i18n.t('location.no_results')}</p>
       </div>`;
-    if (count) count.textContent = '0 results';
+    if (count) count.textContent = i18n.t('location.found_count', { count: 0 });
     return;
   }
 
   grid.innerHTML = pharmacies.map((ph, i) => createPharmacyCard(ph, i)).join('');
-  if (count) count.textContent = `${pharmacies.length} pharmacy${pharmacies.length !== 1 ? 's' : ''} found`;
+  if (count) count.textContent = pharmacies.length === 1 ? i18n.t('location.found_one') : i18n.t('location.found_count', { count: pharmacies.length });
 }
 
 // ── Main search handler ──────────────────────────────────────
@@ -130,7 +130,7 @@ async function handleLocationSearch(query) {
 
   // Show loading
   if (spinner) spinner.style.display = 'block';
-  if (count)   count.textContent = 'Searching…';
+  if (count)   count.textContent = i18n.t('location.searching');
   grid.innerHTML = '';
 
   try {

@@ -15,7 +15,7 @@ let pickerMap = null;          // Leaflet location picker instance
 async function loadPharmacies() {
   const tbody = document.getElementById('pharmacy-tbody');
   if (!tbody) return;
-  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted);">⏳ Loading...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted);">${i18n.t('admin.loading')}</td></tr>`;
 
   try {
     const pharmacies = await API.getPharmacies();
@@ -24,25 +24,25 @@ async function loadPharmacies() {
     if (!pharmacies.length) {
       tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:3rem;color:var(--text-muted);">
         <div style="font-size:2rem;margin-bottom:.5rem;">🏥</div>
-        <p>No pharmacies yet. Click "Add Pharmacy" to get started.</p>
+        <p>${i18n.t('admin.no_pharms')}</p>
       </td></tr>`;
       return;
     }
 
     tbody.innerHTML = pharmacies.map(ph => `
       <tr>
-        <td data-label="Name"><strong>${ph.name}</strong></td>
-        <td data-label="Address" style="font-size:.85rem;color:var(--text-muted);">${ph.address}</td>
-        <td data-label="Phone">${ph.phone || '—'}</td>
-        <td data-label="Medicines"><span class="badge badge-available">${ph.medicines.length} medicines</span></td>
-        <td data-label="Actions">
+        <td data-label="${i18n.t('admin.name')}"><strong>${ph.name}</strong></td>
+        <td data-label="${i18n.t('admin.address')}" style="font-size:.85rem;color:var(--text-muted);">${ph.address}</td>
+        <td data-label="${i18n.t('admin.phone')}">${ph.phone || '—'}</td>
+        <td data-label="${i18n.t('admin.medicines')}"><span class="badge badge-available">${ph.medicines.length} ${i18n.t('admin.medicines')}</span></td>
+        <td data-label="${i18n.t('admin.actions')}">
           <div class="actions">
-            <button class="btn-action btn-edit"   onclick="openPharmacyModal('${ph._id}')" title="Edit">✏️</button>
+            <button class="btn-action btn-edit"   onclick="openPharmacyModal('${ph._id}')" title="${i18n.t('admin.edit')}">✏️</button>
             <button class="btn-action"
               onclick="openMedicinesPanel('${ph._id}')"
               style="color:var(--primary);border-color:var(--primary);"
-              title="Manage Medicines">💊</button>
-            <button class="btn-action btn-delete" onclick="handleDeletePharmacy('${ph._id}','${ph.name}')" title="Delete">🗑️</button>
+              title="${i18n.t('admin.manage_meds')}">💊</button>
+            <button class="btn-action btn-delete" onclick="handleDeletePharmacy('${ph._id}','${ph.name}')" title="${i18n.t('admin.delete')}">🗑️</button>
           </div>
         </td>
       </tr>`).join('');
@@ -63,7 +63,7 @@ function updateStats(pharmacies) {
 // ── Pharmacy Modal ────────────────────────────────────────────
 async function openPharmacyModal(id = null) {
   editingPharmacyId = id;
-  document.getElementById('pharmacy-modal-title').textContent = id ? 'Edit Pharmacy' : 'Add Pharmacy';
+  document.getElementById('pharmacy-modal-title').textContent = id ? i18n.t('admin.title_edit_pharm') : i18n.t('admin.title_add_pharm');
   document.getElementById('ph-name').value    = '';
   document.getElementById('ph-address').value = '';
   document.getElementById('ph-phone').value   = '';
@@ -107,8 +107,8 @@ async function handlePharmacySubmit(e) {
       lng: parseFloat(document.getElementById('ph-lng').value) || 0
     }
   };
-  if (!data.name) return showToast('Pharmacy name is required.', 'error');
-  if (!data.location.lat && !data.location.lng) return showToast('Please select a location on the map.', 'error');
+  if (!data.name) return showToast(i18n.t('admin.ph_name_label'), 'error');
+  if (!data.location.lat && !data.location.lng) return showToast(i18n.t('admin.click_map'), 'error');
 
   try {
     if (editingPharmacyId) {
@@ -124,7 +124,7 @@ async function handlePharmacySubmit(e) {
 }
 
 async function handleDeletePharmacy(id, name) {
-  if (!confirm(`Delete "${name}" and ALL its medicines?`)) return;
+  if (!confirm(i18n.t('admin.confirm_del_ph', { name }))) return;
   try {
     await API.deletePharmacy(id);
     showToast(`"${name}" deleted.`);
@@ -159,23 +159,23 @@ function renderMedicinesTable(medicines) {
   if (!medicines.length) {
     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:3rem;color:var(--text-muted);">
       <div style="font-size:2rem;margin-bottom:.5rem;">💊</div>
-      <p>No medicines yet. Click "Add Medicine".</p>
+      <p>${i18n.t('admin.no_meds')}</p>
     </td></tr>`;
     return;
   }
 
   tbody.innerHTML = medicines.map(m => `
     <tr>
-      <td data-label="Medicine"><strong>${m.name}</strong><br><small style="color:var(--text-muted);">${m.description}</small></td>
-      <td data-label="Status"><span class="badge ${m.stock.isAvailable ? 'badge-available' : 'badge-unavailable'}">
-        ${m.stock.isAvailable ? '✓ Available' : '✗ Out of Stock'}
+      <td data-label="${i18n.t('admin.medicines')}"><strong>${m.name}</strong><br><small style="color:var(--text-muted);">${m.description}</small></td>
+      <td data-label="${i18n.t('admin.status')}"><span class="badge ${m.stock.isAvailable ? 'badge-available' : 'badge-unavailable'}">
+        ${m.stock.isAvailable ? '✓ ' + i18n.t('search.available') : '✗ ' + i18n.t('search.out_of_stock')}
       </span></td>
-      <td data-label="Qty">${m.stock.quantity}</td>
-      <td data-label="Price"><strong>${m.pricing.amount} ${m.pricing.currency}</strong></td>
-      <td data-label="Actions">
+      <td data-label="${i18n.t('admin.qty')}">${m.stock.quantity}</td>
+      <td data-label="${i18n.t('admin.price')}"><strong>${m.pricing.amount} ${m.pricing.currency}</strong></td>
+      <td data-label="${i18n.t('admin.actions')}">
         <div class="actions">
-          <button class="btn-action btn-edit"   onclick="openMedicineModal('${m._id}')" title="Edit">✏️</button>
-          <button class="btn-action btn-delete" onclick="handleDeleteMedicine('${m._id}','${m.name}')" title="Delete">🗑️</button>
+          <button class="btn-action btn-edit"   onclick="openMedicineModal('${m._id}')" title="${i18n.t('admin.edit')}">✏️</button>
+          <button class="btn-action btn-delete" onclick="handleDeleteMedicine('${m._id}','${m.name}')" title="${i18n.t('admin.delete')}">🗑️</button>
         </div>
       </td>
     </tr>`).join('');
@@ -184,7 +184,7 @@ function renderMedicinesTable(medicines) {
 // ── Medicine Modal ────────────────────────────────────────────
 function openMedicineModal(medicineId = null) {
   editingMedicineId = medicineId;
-  document.getElementById('medicine-modal-title').textContent = medicineId ? 'Edit Medicine' : 'Add Medicine';
+  document.getElementById('medicine-modal-title').textContent = medicineId ? i18n.t('admin.title_edit_med') : i18n.t('admin.title_add_med');
 
   if (medicineId) {
     const m = selectedPharmacy.medicines.find(x => x._id === medicineId);
@@ -239,7 +239,7 @@ async function handleMedicineSubmit(e) {
 }
 
 async function handleDeleteMedicine(medicineId, name) {
-  if (!confirm(`Delete "${name}"?`)) return;
+  if (!confirm(i18n.t('admin.confirm_del_med', { name }))) return;
   try {
     await API.deleteMedicine(selectedPharmacy._id, medicineId);
     showToast(`"${name}" deleted.`);
@@ -283,9 +283,16 @@ function initAdminSidebar() {
 }
 
 // ── Init ──────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await i18n.init();
   checkAuth();
   initAdminSidebar();
+
+  // Re-render table on language change
+  window.addEventListener('languageChanged', () => {
+    loadPharmacies();
+    if (selectedPharmacy) renderMedicinesTable(selectedPharmacy.medicines);
+  });
 
   // Show admin name
   const admin = JSON.parse(sessionStorage.getItem('medfinder_admin') || '{}');

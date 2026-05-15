@@ -110,15 +110,14 @@
   <div id="notifications"></div>
 
   <div class="admin-layout">
-    <!-- SIDEBAR -->
     <aside class="sidebar" role="complementary">
       <div class="sidebar-brand">💊 MedFinder</div>
       <nav class="sidebar-nav">
-        <div class="sidebar-nav-item active">🏥 &nbsp;Pharmacies</div>
-        <a href="/" class="sidebar-nav-item">🏠 &nbsp;View Site</a>
+        <div class="sidebar-nav-item active" data-i18n="admin.pharmacies">🏥 &nbsp;Pharmacies</div>
+        <a href="/" class="sidebar-nav-item" data-i18n="admin.view_site">🏠 &nbsp;View Site</a>
       </nav>
       <div class="sidebar-footer">
-        <button class="btn-logout" id="logout-btn">🚪 &nbsp;Logout</button>
+        <button class="btn-logout" id="logout-btn" data-i18n="admin.logout">🚪 &nbsp;Logout</button>
       </div>
     </aside>
 
@@ -130,12 +129,16 @@
         <div style="display:flex;align-items:center;gap:0.75rem;">
           <button id="hamburger-admin" aria-label="Toggle Sidebar">☰</button>
           <div>
-            <div class="topbar-title">Admin Dashboard</div>
-            <div style="color:var(--text-muted);font-size:.8rem;display:none;" id="subtitle-sm">Manage stock</div>
-            <div style="color:var(--text-muted);font-size:.9rem;" id="subtitle-lg">Manage pharmacies and medicines</div>
+            <div class="topbar-title" data-i18n="admin.dashboard">Admin Dashboard</div>
+            <div style="color:var(--text-muted);font-size:.8rem;display:none;" id="subtitle-sm" data-i18n="admin.manage_stock">Manage stock</div>
+            <div style="color:var(--text-muted);font-size:.9rem;" id="subtitle-lg" data-i18n="admin.manage_pharms_meds">Manage pharmacies and medicines</div>
           </div>
         </div>
         <div class="admin-user">
+          <select id="language-switcher" aria-label="Select Language" onchange="i18n.switchLanguage(this.value)" style="margin-right:0.5rem;">
+            <option value="en">English</option>
+            <option value="am">አማርኛ</option>
+          </select>
           <span>👤</span>
           <span id="admin-name" style="font-weight:600;font-size:.9rem;">Admin</span>
           <button id="dark-mode-toggle" style="background:none;border:none;cursor:pointer;font-size:1rem;" aria-label="Toggle dark mode">🌙</button>
@@ -144,20 +147,19 @@
 
       <!-- Stats -->
       <div class="stats-grid">
-        <div class="stat-card"><div class="stat-icon">🏥</div><div><div class="stat-val" id="stat-pharmacies">—</div><div class="stat-lbl">Pharmacies</div></div></div>
-        <div class="stat-card"><div class="stat-icon">💊</div><div><div class="stat-val" id="stat-total">—</div><div class="stat-lbl">Total Medicines</div></div></div>
-        <div class="stat-card"><div class="stat-icon">✅</div><div><div class="stat-val" id="stat-avail">—</div><div class="stat-lbl">In Stock</div></div></div>
-        <div class="stat-card"><div class="stat-icon">❌</div><div><div class="stat-val" id="stat-out">—</div><div class="stat-lbl">Out of Stock</div></div></div>
+        <div class="stat-card"><div class="stat-icon">🏥</div><div><div class="stat-val" id="stat-pharmacies">—</div><div class="stat-lbl" data-i18n="admin.pharmacies">Pharmacies</div></div></div>
+        <div class="stat-card"><div class="stat-icon">💊</div><div><div class="stat-val" id="stat-total">—</div><div class="stat-lbl" data-i18n="admin.total_meds">Total Medicines</div></div></div>
+        <div class="stat-card"><div class="stat-icon">✅</div><div><div class="stat-val" id="stat-avail">—</div><div class="stat-lbl" data-i18n="admin.in_stock">In Stock</div></div></div>
+        <div class="stat-card"><div class="stat-icon">❌</div><div><div class="stat-val" id="stat-out">—</div><div class="stat-lbl" data-i18n="admin.out_of_stock">Out of Stock</div></div></div>
       </div>
 
-      <!-- SECTION 1: Pharmacies -->
       <div id="section-pharmacies">
         <div class="table-wrapper">
           <div class="table-toolbar">
-            <div style="font-weight:700;font-size:1.1rem;">All Pharmacies</div>
+            <div style="font-weight:700;font-size:1.1rem;" data-i18n="admin.all_pharms">All Pharmacies</div>
             <div style="display:flex;gap:.75rem;">
-              <input type="search" id="table-search" class="table-search" placeholder="🔍 Search..." />
-              <button class="btn-add" id="add-pharmacy-btn">+ Add Pharmacy</button>
+              <input type="search" id="table-search" class="table-search" placeholder="🔍 Search..." data-i18n="admin.search_placeholder" />
+              <button class="btn-add" id="add-pharmacy-btn" data-i18n="admin.add_pharm">+ Add Pharmacy</button>
             </div>
           </div>
           <div style="overflow-x:auto;">
@@ -174,12 +176,12 @@
       <!-- SECTION 2: Medicines (hidden until pharmacy selected) -->
       <div id="section-medicines" style="display:none;">
         <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;">
-          <button class="btn-secondary" id="back-to-pharmacies">← Pharmacies</button>
+          <button class="btn-secondary" id="back-to-pharmacies" data-i18n="admin.back">← Pharmacies</button>
           <div>
-            <div style="font-weight:700;font-size:1.1rem;">💊 Medicines — <span id="med-section-title"></span></div>
-            <div style="font-size:.85rem;color:var(--text-muted);">Manage medicines for this pharmacy</div>
+            <div style="font-weight:700;font-size:1.1rem;">💊 <span data-i18n="admin.medicines">Medicines</span> — <span id="med-section-title"></span></div>
+            <div style="font-size:.85rem;color:var(--text-muted);" data-i18n="admin.ph_desc">Manage medicines for this pharmacy</div>
           </div>
-          <button class="btn-add" id="add-medicine-btn" style="margin-left:auto;">+ Add Medicine</button>
+          <button class="btn-add" id="add-medicine-btn" style="margin-left:auto;" data-i18n="admin.add_med">+ Add Medicine</button>
         </div>
         <div class="table-wrapper">
           <div style="overflow-x:auto;">
@@ -199,34 +201,34 @@
   <div class="modal-overlay" id="pharmacy-modal" role="dialog" aria-modal="true">
     <div class="modal">
       <div class="modal-header">
-        <h2 class="modal-title" id="pharmacy-modal-title">Add Pharmacy</h2>
+        <h2 class="modal-title" id="pharmacy-modal-title" data-i18n="admin.add_pharm">Add Pharmacy</h2>
         <button class="btn-close" id="close-pharmacy-modal">✕</button>
       </div>
       <form id="pharmacy-form" novalidate>
         <div class="form-grid">
           <div class="form-group" style="grid-column:1/-1;">
-            <label for="ph-name">Pharmacy Name *</label>
-            <input type="text" id="ph-name" class="form-control" placeholder="e.g. ABC Pharmacy" required />
+            <label for="ph-name" data-i18n="admin.ph_name_label">Pharmacy Name *</label>
+            <input type="text" id="ph-name" class="form-control" placeholder="e.g. ABC Pharmacy" data-i18n="admin.ph_name_placeholder" required />
           </div>
           <div class="form-group">
-            <label for="ph-address">Address</label>
-            <input type="text" id="ph-address" class="form-control" placeholder="Addis Ababa, Bole" />
+            <label for="ph-address" data-i18n="admin.address">Address</label>
+            <input type="text" id="ph-address" class="form-control" placeholder="Addis Ababa, Bole" data-i18n="admin.ph_addr_placeholder" />
           </div>
           <div class="form-group">
-            <label for="ph-phone">Phone</label>
+            <label for="ph-phone" data-i18n="admin.phone">Phone</label>
             <input type="tel" id="ph-phone" class="form-control" placeholder="+251912345678" />
           </div>
           <div class="form-group" style="grid-column:1/-1;">
-            <label>📍 Location <span style="font-weight:400;color:var(--text-muted);">(click map to pin)</span></label>
+            <label><span data-i18n="admin.map_loc">📍 Location</span> <span style="font-weight:400;color:var(--text-muted);" data-i18n="admin.loc_pin">(click map to pin)</span></label>
             <div id="location-picker-map"></div>
-            <div id="coord-display" style="color:var(--text-muted);">📍 Click on the map to select location</div>
+            <div id="coord-display" style="color:var(--text-muted);" data-i18n="admin.click_map">📍 Click on the map to select location</div>
             <input type="hidden" id="ph-lat" />
             <input type="hidden" id="ph-lng" />
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn-cancel" id="cancel-pharmacy-btn">Cancel</button>
-          <button type="submit" class="btn-save">Save Pharmacy</button>
+          <button type="button" class="btn-cancel" id="cancel-pharmacy-btn" data-i18n="admin.cancel">Cancel</button>
+          <button type="submit" class="btn-save" data-i18n="admin.save_pharm">Save Pharmacy</button>
         </div>
       </form>
     </div>
@@ -236,36 +238,36 @@
   <div class="modal-overlay" id="medicine-modal" role="dialog" aria-modal="true">
     <div class="modal" style="max-width:520px;">
       <div class="modal-header">
-        <h2 class="modal-title" id="medicine-modal-title">Add Medicine</h2>
+        <h2 class="modal-title" id="medicine-modal-title" data-i18n="admin.add_med">Add Medicine</h2>
         <button class="btn-close" id="close-medicine-modal">✕</button>
       </div>
       <form id="medicine-form" novalidate>
         <div class="form-group">
-          <label for="med-name">Medicine Name *</label>
-          <input type="text" id="med-name" class="form-control" placeholder="e.g. Paracetamol" required />
+          <label for="med-name" data-i18n="admin.med_name_label">Medicine Name *</label>
+          <input type="text" id="med-name" class="form-control" placeholder="e.g. Paracetamol" data-i18n="admin.med_name_placeholder" required />
         </div>
         <div class="form-group">
-          <label for="med-description">Description</label>
-          <textarea id="med-description" class="form-control" rows="3" placeholder="What is this medicine used for?"></textarea>
+          <label for="med-description" data-i18n="admin.med_desc_label">Description</label>
+          <textarea id="med-description" class="form-control" rows="3" placeholder="What is this medicine used for?" data-i18n="admin.med_desc_placeholder"></textarea>
         </div>
         <div class="form-grid">
           <div class="form-group">
-            <label for="med-quantity">Quantity *</label>
+            <label for="med-quantity" data-i18n="admin.qty_label">Quantity *</label>
             <input type="number" id="med-quantity" class="form-control" placeholder="e.g. 100" min="0" required />
           </div>
           <div class="form-group">
-            <label for="med-available">Availability</label>
+            <label for="med-available" data-i18n="admin.avail_label">Availability</label>
             <select id="med-available" class="form-control">
-              <option value="true">✓ Available</option>
-              <option value="false">✗ Out of Stock</option>
+              <option value="true" data-i18n="search.available">✓ Available</option>
+              <option value="false" data-i18n="search.out_of_stock">✗ Out of Stock</option>
             </select>
           </div>
           <div class="form-group">
-            <label for="med-price">Price *</label>
+            <label for="med-price" data-i18n="admin.price_label">Price *</label>
             <input type="number" id="med-price" class="form-control" placeholder="e.g. 120" min="0" step="0.01" required />
           </div>
           <div class="form-group">
-            <label for="med-currency">Currency</label>
+            <label for="med-currency" data-i18n="admin.currency_label">Currency</label>
             <select id="med-currency" class="form-control">
               <option value="ETB">ETB (Birr)</option>
               <option value="USD">USD</option>
@@ -273,14 +275,15 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn-cancel" id="cancel-medicine-btn">Cancel</button>
-          <button type="submit" class="btn-save">Save Medicine</button>
+          <button type="button" class="btn-cancel" id="cancel-medicine-btn" data-i18n="admin.cancel">Cancel</button>
+          <button type="submit" class="btn-save" data-i18n="admin.save_med">Save Medicine</button>
         </div>
       </form>
     </div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/js/i18n.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/app.js"></script>
   <script src="/js/map.js"></script>

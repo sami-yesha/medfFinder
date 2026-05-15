@@ -44,9 +44,13 @@
     <div class="container nav-container">
       <a href="/" class="logo">💊 MedFinder</a>
       <ul class="nav-links" id="nav-links">
-        <li><a href="/" class="nav-link">Home</a></li>
+        <li><a href="/" class="nav-link" data-i18n="nav.home">Home</a></li>
       </ul>
       <div style="display:flex;gap:.75rem;align-items:center;">
+        <select id="language-switcher" aria-label="Select Language" onchange="i18n.switchLanguage(this.value)">
+          <option value="en">English</option>
+          <option value="am">አማርኛ</option>
+        </select>
         <button id="dark-mode-toggle" aria-label="Toggle dark mode" style="background:var(--bg-main);border:1px solid var(--border);border-radius:.5rem;width:2.5rem;height:2.5rem;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;">🌙</button>
         <button id="hamburger" aria-label="Menu" style="background:none;border:none;font-size:1.5rem;cursor:pointer;display:none;">☰</button>
       </div>
@@ -67,17 +71,20 @@
 
   <main>
     <div class="container" style="padding-top:2rem;padding-bottom:4rem;">
-      <a href="/" class="btn-back">← Back to Home</a>
+      <a href="/" class="btn-back" data-i18n="details.back_home">← Back to Home</a>
       <div id="details-content"></div>
     </div>
   </main>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/js/i18n.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/app.js"></script>
   <script src="/js/map.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
+      await i18n.init();
+
       const params     = new URLSearchParams(window.location.search);
       const pharmacyId = params.get('pharmacyId');
       const medicineId = params.get('medicineId');
@@ -97,6 +104,17 @@
           // Pharmacy profile view (from location search "View Details")
           renderPharmacyProfile(container, pharmacy);
         }
+
+        // Re-render on language change
+        window.addEventListener('languageChanged', () => {
+           if (medicineId) {
+             const medicine = pharmacy.medicines.find(m => m._id === medicineId);
+             renderMedicineDetails(container, pharmacy, medicine);
+           } else {
+             renderPharmacyProfile(container, pharmacy);
+           }
+        });
+
       } catch (err) {
         renderNotFound(container, err.message);
       }
@@ -106,9 +124,9 @@
       container.innerHTML = `
         <div class="not-found">
           <div style="font-size:4rem;margin-bottom:1rem;">😕</div>
-          <h1 style="font-size:1.75rem;color:var(--text-main);margin-bottom:.5rem;">Not Found</h1>
+          <h1 style="font-size:1.75rem;color:var(--text-main);margin-bottom:.5rem;" data-i18n="details.not_found">${i18n.t('details.not_found')}</h1>
           <p>${reason}</p>
-          <a href="/" style="display:inline-block;margin-top:1.5rem;background:var(--primary);color:white;padding:.75rem 2rem;border-radius:.75rem;font-weight:600;">← Back to Home</a>
+          <a href="/" style="display:inline-block;margin-top:1.5rem;background:var(--primary);color:white;padding:.75rem 2rem;border-radius:.75rem;font-weight:600;" data-i18n="details.back_home">${i18n.t('details.back_home')}</a>
         </div>`;
     }
 
@@ -124,50 +142,50 @@
               <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:.75rem;">
                 <h1 class="details-title">${med.name}</h1>
                 <span class="badge ${avail ? 'badge-available' : 'badge-unavailable'}" style="white-space:nowrap;">
-                  ${avail ? '✓ Available' : '✗ Out of Stock'}
+                  ${avail ? '✓ ' + i18n.t('details.available') : '✗ ' + i18n.t('details.out_of_stock')}
                 </span>
               </div>
               <p style="color:var(--text-muted);margin-bottom:1.5rem;line-height:1.75;">${med.description}</p>
               <div class="detail-row">
                 <div class="detail-icon">💰</div>
-                <div><div class="detail-label">Price</div>
+                <div><div class="detail-label">${i18n.t('details.price')}</div>
                   <div class="price-display">${med.pricing.amount} <span style="font-size:1.25rem;">${med.pricing.currency}</span></div>
                 </div>
               </div>
               <div class="detail-row">
                 <div class="detail-icon">📦</div>
-                <div><div class="detail-label">Stock</div>
+                <div><div class="detail-label">${i18n.t('details.stock')}</div>
                   <div class="detail-value">${avail
-                    ? `<span style="color:var(--secondary)">${med.stock.quantity} units in stock</span>`
-                    : '<span style="color:var(--error)">Currently out of stock</span>'}</div>
+                    ? `<span style="color:var(--secondary)">${i18n.t('details.units_in_stock', { count: med.stock.quantity })}</span>`
+                    : `<span style="color:var(--error)">${i18n.t('details.currently_out')}</span>`}</div>
                 </div>
               </div>
             </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:1.5rem;">
             <div class="details-card">
-              <p style="font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:1rem;">🏥 Pharmacy Details</p>
+              <p style="font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:1rem;">🏥 ${i18n.t('details.pharm_details')}</p>
               <div class="detail-row"><div class="detail-icon">🏥</div>
-                <div><div class="detail-label">Name</div><div class="detail-value">${pharmacy.name}</div></div>
+                <div><div class="detail-label">${i18n.t('details.name')}</div><div class="detail-value">${pharmacy.name}</div></div>
               </div>
               <div class="detail-row"><div class="detail-icon">📍</div>
-                <div><div class="detail-label">Address</div><div class="detail-value">${pharmacy.address || '—'}</div></div>
+                <div><div class="detail-label">${i18n.t('details.address')}</div><div class="detail-value">${pharmacy.address || '—'}</div></div>
               </div>
               <div class="detail-row"><div class="detail-icon">📞</div>
-                <div><div class="detail-label">Phone</div>
+                <div><div class="detail-label">${i18n.t('details.phone')}</div>
                   <div class="detail-value">${pharmacy.phone
                     ? `<a href="tel:${pharmacy.phone}" style="color:var(--primary);">${pharmacy.phone}</a>`
                     : '—'}</div>
                 </div>
               </div>
               <div class="detail-row"><div class="detail-icon">🌍</div>
-                <div><div class="detail-label">Coordinates</div>
+                <div><div class="detail-label">${i18n.t('details.coords')}</div>
                   <div class="detail-value" style="font-family:monospace;font-size:.85rem;">${pharmacy.location.lat.toFixed(4)}, ${pharmacy.location.lng.toFixed(4)}</div>
                 </div>
               </div>
             </div>
             <div class="details-card" style="padding:1.25rem;">
-              <p style="font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:1rem;">📍 Location on Map</p>
+              <p style="font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:1rem;">📍 ${i18n.t('details.map_loc')}</p>
               <div id="detail-map"></div>
             </div>
           </div>
@@ -191,7 +209,7 @@
             <div class="med-list-right">
               <span class="med-list-price">${med.pricing.amount} ${med.pricing.currency}</span>
               <span class="badge ${avail ? 'badge-available' : 'badge-unavailable'}" style="font-size:.75rem;">
-                ${avail ? '✓ In Stock' : '✗ Out'}
+                ${avail ? '✓ ' + i18n.t('details.available') : '✗ ' + i18n.t('details.out_of_stock')}
               </span>
             </div>
           </div>`;
@@ -207,25 +225,25 @@
             <div class="details-card">
               <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:.75rem;">
                 <h1 class="details-title">${pharmacy.name}</h1>
-                <span class="badge badge-available" style="white-space:nowrap;">${available.length} in stock</span>
+                <span class="badge badge-available" style="white-space:nowrap;">${i18n.t('details.units_in_stock', { count: available.length })}</span>
               </div>
               <div class="detail-row"><div class="detail-icon">📍</div>
-                <div><div class="detail-label">Address</div><div class="detail-value">${pharmacy.address || '—'}</div></div>
+                <div><div class="detail-label">${i18n.t('details.address')}</div><div class="detail-value">${pharmacy.address || '—'}</div></div>
               </div>
               <div class="detail-row"><div class="detail-icon">📞</div>
-                <div><div class="detail-label">Phone</div>
+                <div><div class="detail-label">${i18n.t('details.phone')}</div>
                   <div class="detail-value">${pharmacy.phone
                     ? `<a href="tel:${pharmacy.phone}" style="color:var(--primary);">${pharmacy.phone}</a>`
                     : '—'}</div>
                 </div>
               </div>
               <div class="detail-row"><div class="detail-icon">💊</div>
-                <div><div class="detail-label">Total Medicines</div>
-                  <div class="detail-value">${pharmacy.medicines.length} listed (${available.length} available)</div>
+                <div><div class="detail-label">${i18n.t('details.total_meds')}</div>
+                  <div class="detail-value">${i18n.t('details.listed_avail', { count: pharmacy.medicines.length, avail: available.length })}</div>
                 </div>
               </div>
               <div class="detail-row"><div class="detail-icon">🌍</div>
-                <div><div class="detail-label">Coordinates</div>
+                <div><div class="detail-label">${i18n.t('details.coords')}</div>
                   <div class="detail-value" style="font-family:monospace;font-size:.85rem;">${pharmacy.location.lat.toFixed(4)}, ${pharmacy.location.lng.toFixed(4)}</div>
                 </div>
               </div>
@@ -233,16 +251,16 @@
           </div>
           <div style="display:flex;flex-direction:column;gap:1.5rem;">
             <div class="details-card" style="padding:1.25rem;">
-              <p style="font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:1rem;">📍 Location on Map</p>
+              <p style="font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:1rem;">📍 ${i18n.t('details.map_loc')}</p>
               <div id="detail-map"></div>
             </div>
             <div class="details-card">
               <p style="font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:1rem;">
-                💊 All Medicines (${pharmacy.medicines.length})
+                💊 ${i18n.t('details.all_meds')} (${pharmacy.medicines.length})
               </p>
               ${pharmacy.medicines.length
                 ? `<div class="med-list">${pharmacy.medicines.map(medItem).join('')}</div>`
-                : `<p style="color:var(--text-muted);text-align:center;padding:1.5rem;">No medicines registered yet.</p>`
+                : `<p style="color:var(--text-muted);text-align:center;padding:1.5rem;">${i18n.t('details.no_meds_reg')}</p>`
               }
             </div>
           </div>
