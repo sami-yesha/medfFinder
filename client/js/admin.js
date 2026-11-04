@@ -5,6 +5,7 @@
  */
 
 // ── State ─────────────────────────────────────────────────────
+let pharmacyList = [];         // Last loaded pharmacies (for name lookups)
 let selectedPharmacy = null;   // The pharmacy whose medicines are being managed
 let editingPharmacyId = null;  // ID when editing a pharmacy
 let editingMedicineId = null;  // ID when editing a medicine
@@ -19,6 +20,7 @@ async function loadPharmacies() {
 
   try {
     const pharmacies = await API.getPharmacies();
+    pharmacyList = pharmacies;
     updateStats(pharmacies);
 
     if (!pharmacies.length) {
@@ -31,9 +33,9 @@ async function loadPharmacies() {
 
     tbody.innerHTML = pharmacies.map(ph => `
       <tr>
-        <td data-label="${i18n.t('admin.name')}"><strong>${ph.name}</strong></td>
-        <td data-label="${i18n.t('admin.address')}" style="font-size:.85rem;color:var(--text-muted);">${ph.address}</td>
-        <td data-label="${i18n.t('admin.phone')}">${ph.phone || '—'}</td>
+        <td data-label="${i18n.t('admin.name')}"><strong>${escapeHtml(ph.name)}</strong></td>
+        <td data-label="${i18n.t('admin.address')}" style="font-size:.85rem;color:var(--text-muted);">${escapeHtml(ph.address)}</td>
+        <td data-label="${i18n.t('admin.phone')}">${escapeHtml(ph.phone || '—')}</td>
         <td data-label="${i18n.t('admin.medicines')}"><span class="badge badge-available">${ph.medicines.length} ${i18n.t('admin.medicines')}</span></td>
         <td data-label="${i18n.t('admin.actions')}">
           <div class="actions">
@@ -42,12 +44,12 @@ async function loadPharmacies() {
               onclick="openMedicinesPanel('${ph._id}')"
               style="color:var(--primary);border-color:var(--primary);"
               title="${i18n.t('admin.manage_meds')}">💊</button>
-            <button class="btn-action btn-delete" onclick="handleDeletePharmacy('${ph._id}','${ph.name}')" title="${i18n.t('admin.delete')}">🗑️</button>
+            <button class="btn-action btn-delete" onclick="handleDeletePharmacy('${ph._id}')" title="${i18n.t('admin.delete')}">🗑️</button>
           </div>
         </td>
       </tr>`).join('');
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--error);">❌ ${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--error);">❌ ${escapeHtml(err.message)}</td></tr>`;
   }
 }
 
@@ -123,7 +125,8 @@ async function handlePharmacySubmit(e) {
   } catch (err) { showToast(err.message, 'error'); }
 }
 
-async function handleDeletePharmacy(id, name) {
+async function handleDeletePharmacy(id) {
+  const name = pharmacyList.find(p => p._id === id)?.name || '';
   if (!confirm(i18n.t('admin.confirm_del_ph', { name }))) return;
   try {
     await API.deletePharmacy(id);
@@ -166,16 +169,16 @@ function renderMedicinesTable(medicines) {
 
   tbody.innerHTML = medicines.map(m => `
     <tr>
-      <td data-label="${i18n.t('admin.medicines')}"><strong>${m.name}</strong><br><small style="color:var(--text-muted);">${m.description}</small></td>
+      <td data-label="${i18n.t('admin.medicines')}"><strong>${escapeHtml(m.name)}</strong><br><small style="color:var(--text-muted);">${escapeHtml(m.description)}</small></td>
       <td data-label="${i18n.t('admin.status')}"><span class="badge ${m.stock.isAvailable ? 'badge-available' : 'badge-unavailable'}">
         ${m.stock.isAvailable ? '✓ ' + i18n.t('search.available') : '✗ ' + i18n.t('search.out_of_stock')}
       </span></td>
       <td data-label="${i18n.t('admin.qty')}">${m.stock.quantity}</td>
-      <td data-label="${i18n.t('admin.price')}"><strong>${m.pricing.amount} ${m.pricing.currency}</strong></td>
+      <td data-label="${i18n.t('admin.price')}"><strong>${escapeHtml(m.pricing.amount)} ${escapeHtml(m.pricing.currency)}</strong></td>
       <td data-label="${i18n.t('admin.actions')}">
         <div class="actions">
           <button class="btn-action btn-edit"   onclick="openMedicineModal('${m._id}')" title="${i18n.t('admin.edit')}">✏️</button>
-          <button class="btn-action btn-delete" onclick="handleDeleteMedicine('${m._id}','${m.name}')" title="${i18n.t('admin.delete')}">🗑️</button>
+          <button class="btn-action btn-delete" onclick="handleDeleteMedicine('${m._id}')" title="${i18n.t('admin.delete')}">🗑️</button>
         </div>
       </td>
     </tr>`).join('');
@@ -238,7 +241,8 @@ async function handleMedicineSubmit(e) {
   } catch (err) { showToast(err.message, 'error'); }
 }
 
-async function handleDeleteMedicine(medicineId, name) {
+async function handleDeleteMedicine(medicineId) {
+  const name = selectedPharmacy?.medicines.find(m => m._id === medicineId)?.name || '';
   if (!confirm(i18n.t('admin.confirm_del_med', { name }))) return;
   try {
     await API.deleteMedicine(selectedPharmacy._id, medicineId);
@@ -250,8 +254,9 @@ async function handleDeleteMedicine(medicineId, name) {
 }
 
 // ── Auth Guard ────────────────────────────────────────────────
+// The server enforces auth on every write; this only avoids showing the page to logged-out users
 function checkAuth() {
-  if (!sessionStorage.getItem('medfinder_admin')) window.location.href = '/pages/login';
+  if (!getAdminSession()?.token) window.location.href = '/pages/login';
 }
 
 function handleLogout() {
@@ -295,7 +300,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // Show admin name
-  const admin = JSON.parse(sessionStorage.getItem('medfinder_admin') || '{}');
+  const admin = getAdminSession() || {};
   const nameEl = document.getElementById('admin-name');
   if (nameEl && admin.email) nameEl.textContent = admin.email.split('@')[0];
 

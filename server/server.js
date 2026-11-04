@@ -24,6 +24,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../client')));
 
 // ── API Routes ──────────────────────────────────────────────
+app.use('/api/auth',       require('./routes/authRoutes'));
 app.use('/api/pharmacies', require('./routes/pharmacyRoutes'));
 app.use('/api',            require('./routes/medicineRoutes'));
 

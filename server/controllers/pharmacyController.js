@@ -4,6 +4,19 @@
  */
 const Pharmacy = require('../models/Pharmacy');
 
+// Treat user search text as a literal, not a regex pattern
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Only these pharmacy fields may be set from a request body
+const pickPharmacyInfo = ({ name, address, phone, location } = {}) => {
+  const info = {};
+  if (name     !== undefined) info.name    = String(name);
+  if (address  !== undefined) info.address = String(address);
+  if (phone    !== undefined) info.phone   = String(phone);
+  if (location !== undefined) info.location = { lat: Number(location?.lat) || 0, lng: Number(location?.lng) || 0 };
+  return info;
+};
+
 // ── GET /api/pharmacies ──────────────────────────────────────
 const getAllPharmacies = async (req, res) => {
   try {
@@ -28,7 +41,7 @@ const getPharmacyById = async (req, res) => {
 // ── POST /api/pharmacies ─────────────────────────────────────
 const createPharmacy = async (req, res) => {
   try {
-    const pharmacy = new Pharmacy(req.body);
+    const pharmacy = new Pharmacy(pickPharmacyInfo(req.body));
     const saved = await pharmacy.save();
     res.status(201).json(saved);
   } catch (err) {
@@ -40,10 +53,9 @@ const createPharmacy = async (req, res) => {
 // Updates only pharmacy info fields (NOT medicines array)
 const updatePharmacy = async (req, res) => {
   try {
-    const { medicines, ...info } = req.body; // strip medicines
     const pharmacy = await Pharmacy.findByIdAndUpdate(
       req.params.id,
-      { $set: info },
+      { $set: pickPharmacyInfo(req.body) },
       { new: true, runValidators: true }
     );
     if (!pharmacy) return res.status(404).json({ message: 'Pharmacy not found' });
@@ -68,13 +80,13 @@ const deletePharmacy = async (req, res) => {
 // Searches medicines across ALL pharmacies
 const searchMedicines = async (req, res) => {
   try {
-    const query = (req.query.medicine || '').trim();
+    const query = String(req.query.medicine || '').trim();
+    const rx = new RegExp(escapeRegex(query), 'i');
     let pharmacies;
 
     if (!query) {
       pharmacies = await Pharmacy.find();
     } else {
-      const rx = new RegExp(query, 'i');
       pharmacies = await Pharmacy.find({
         medicines: { $elemMatch: { $or: [{ name: rx }, { description: rx }] } }
       });
@@ -84,7 +96,7 @@ const searchMedicines = async (req, res) => {
     const results = [];
     pharmacies.forEach(ph => {
       const meds = query
-        ? ph.medicines.filter(m => new RegExp(query, 'i').test(m.name) || new RegExp(query, 'i').test(m.description))
+        ? ph.medicines.filter(m => rx.test(m.name) || rx.test(m.description))
         : ph.medicines;
 
       meds.forEach(med => {
@@ -109,7 +121,7 @@ const searchMedicines = async (req, res) => {
   }
 };
 
-// ── GET /api/seed ────────────────────────────────────────────
+// ── POST /api/pharmacies/seed (admin) ────────────────────────────────────────────
 // Seeds sample data if DB is empty (one-time use)
 const seedData = async (req, res) => {
   try {
@@ -165,14 +177,14 @@ const seedData = async (req, res) => {
 // Searches pharmacies by address text using regex (stored data only)
 const searchPharmaciesByLocation = async (req, res) => {
   try {
-    const query = (req.query.query || '').trim();
+    const query = String(req.query.query || '').trim();
 
     let pharmacies;
     if (!query) {
       pharmacies = await Pharmacy.find().sort({ name: 1 });
     } else {
       pharmacies = await Pharmacy.find({
-        address: { $regex: query, $options: 'i' }
+        address: { $regex: escapeRegex(query), $options: 'i' }
       }).sort({ name: 1 });
     }
 

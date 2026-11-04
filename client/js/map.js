@@ -4,7 +4,7 @@
  */
 
 let mapInstance = null;
-const pharmacyMarkers = {}; // name → Leaflet marker
+const pharmacyMarkers = {}; // pharmacy _id → Leaflet marker
 
 // ── Main Pharmacies Map (home page) ───────────────────────────
 async function initPharmaciesMap() {
@@ -24,14 +24,14 @@ async function initPharmaciesMap() {
 
       const available = ph.medicines.filter(m => m.stock.isAvailable);
       const medList = available.length
-        ? available.map(m => `<li>💊 ${m.name} — <b>${m.pricing.amount} ${m.pricing.currency}</b></li>`).join('')
+        ? available.map(m => `<li>💊 ${escapeHtml(m.name)} — <b>${escapeHtml(m.pricing.amount)} ${escapeHtml(m.pricing.currency)}</b></li>`).join('')
         : '<li style="color:#ef4444">No medicines in stock</li>';
 
       const popup = `
         <div style="font-family:Inter,sans-serif;min-width:200px;">
-          <h4 style="margin:0 0 .4rem;color:#4f46e5;">🏥 ${ph.name}</h4>
-          <p style="margin:0 0 .2rem;font-size:.85rem;color:#64748b;">📍 ${ph.address}</p>
-          <p style="margin:0 0 .7rem;font-size:.85rem;color:#64748b;">📞 ${ph.phone}</p>
+          <h4 style="margin:0 0 .4rem;color:#4f46e5;">🏥 ${escapeHtml(ph.name)}</h4>
+          <p style="margin:0 0 .2rem;font-size:.85rem;color:#64748b;">📍 ${escapeHtml(ph.address)}</p>
+          <p style="margin:0 0 .7rem;font-size:.85rem;color:#64748b;">📞 ${escapeHtml(ph.phone)}</p>
           <hr style="border:none;border-top:1px solid #e2e8f0;margin-bottom:.7rem;">
           <p style="font-weight:600;font-size:.85rem;margin-bottom:.4rem;">Available Medicines:</p>
           <ul style="margin:0;padding:0;list-style:none;font-size:.85rem;">${medList}</ul>
@@ -41,7 +41,7 @@ async function initPharmaciesMap() {
         .bindPopup(popup, { maxWidth: 280 })
         .addTo(mapInstance);
 
-      pharmacyMarkers[ph.name] = marker;
+      pharmacyMarkers[ph._id] = marker;
     });
   } catch (err) {
     console.error('Map load error:', err.message);
@@ -49,8 +49,8 @@ async function initPharmaciesMap() {
 }
 
 /** Called from search cards' "View on Map" button */
-function openPharmacyPopup(name) {
-  const marker = pharmacyMarkers[name];
+function openPharmacyPopup(pharmacyId) {
+  const marker = pharmacyMarkers[pharmacyId];
   if (marker && mapInstance) {
     document.getElementById('pharmacies-section')?.scrollIntoView({ behavior: 'smooth' });
     setTimeout(() => {
@@ -68,7 +68,7 @@ function initDetailMap(lat, lng, pharmacyName) {
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
   }).addTo(m);
-  L.marker([lat, lng]).bindPopup(`<b>🏥 ${pharmacyName}</b>`).addTo(m).openPopup();
+  L.marker([lat, lng]).bindPopup(`<b>🏥 ${escapeHtml(pharmacyName)}</b>`).addTo(m).openPopup();
 }
 
 // ── Admin Location Picker Map ─────────────────────────────────

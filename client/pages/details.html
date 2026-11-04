@@ -125,7 +125,7 @@
         <div class="not-found">
           <div style="font-size:4rem;margin-bottom:1rem;">😕</div>
           <h1 style="font-size:1.75rem;color:var(--text-main);margin-bottom:.5rem;" data-i18n="details.not_found">${i18n.t('details.not_found')}</h1>
-          <p>${reason}</p>
+          <p>${escapeHtml(reason)}</p>
           <a href="/" style="display:inline-block;margin-top:1.5rem;background:var(--primary);color:white;padding:.75rem 2rem;border-radius:.75rem;font-weight:600;" data-i18n="details.back_home">${i18n.t('details.back_home')}</a>
         </div>`;
     }
@@ -137,19 +137,19 @@
       container.innerHTML = `
         <div class="details-layout">
           <div>
-            <div class="med-hero"><span class="icon">💊</span><p style="opacity:.8;margin-top:.5rem;">${med.name}</p></div>
+            <div class="med-hero"><span class="icon">💊</span><p style="opacity:.8;margin-top:.5rem;">${escapeHtml(med.name)}</p></div>
             <div class="details-card">
               <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:.75rem;">
-                <h1 class="details-title">${med.name}</h1>
+                <h1 class="details-title">${escapeHtml(med.name)}</h1>
                 <span class="badge ${avail ? 'badge-available' : 'badge-unavailable'}" style="white-space:nowrap;">
                   ${avail ? '✓ ' + i18n.t('details.available') : '✗ ' + i18n.t('details.out_of_stock')}
                 </span>
               </div>
-              <p style="color:var(--text-muted);margin-bottom:1.5rem;line-height:1.75;">${med.description}</p>
+              <p style="color:var(--text-muted);margin-bottom:1.5rem;line-height:1.75;">${escapeHtml(med.description)}</p>
               <div class="detail-row">
                 <div class="detail-icon">💰</div>
                 <div><div class="detail-label">${i18n.t('details.price')}</div>
-                  <div class="price-display">${med.pricing.amount} <span style="font-size:1.25rem;">${med.pricing.currency}</span></div>
+                  <div class="price-display">${escapeHtml(med.pricing.amount)} <span style="font-size:1.25rem;">${escapeHtml(med.pricing.currency)}</span></div>
                 </div>
               </div>
               <div class="detail-row">
@@ -166,15 +166,15 @@
             <div class="details-card">
               <p style="font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:1rem;">🏥 ${i18n.t('details.pharm_details')}</p>
               <div class="detail-row"><div class="detail-icon">🏥</div>
-                <div><div class="detail-label">${i18n.t('details.name')}</div><div class="detail-value">${pharmacy.name}</div></div>
+                <div><div class="detail-label">${i18n.t('details.name')}</div><div class="detail-value">${escapeHtml(pharmacy.name)}</div></div>
               </div>
               <div class="detail-row"><div class="detail-icon">📍</div>
-                <div><div class="detail-label">${i18n.t('details.address')}</div><div class="detail-value">${pharmacy.address || '—'}</div></div>
+                <div><div class="detail-label">${i18n.t('details.address')}</div><div class="detail-value">${escapeHtml(pharmacy.address || '—')}</div></div>
               </div>
               <div class="detail-row"><div class="detail-icon">📞</div>
                 <div><div class="detail-label">${i18n.t('details.phone')}</div>
                   <div class="detail-value">${pharmacy.phone
-                    ? `<a href="tel:${pharmacy.phone}" style="color:var(--primary);">${pharmacy.phone}</a>`
+                    ? `<a href="tel:${escapeHtml(pharmacy.phone)}" style="color:var(--primary);">${escapeHtml(pharmacy.phone)}</a>`
                     : '—'}</div>
                 </div>
               </div>
@@ -203,11 +203,11 @@
         return `
           <div class="med-list-item">
             <div>
-              <div class="med-list-name">💊 ${med.name}</div>
-              <div class="med-list-meta">${med.description || ''}</div>
+              <div class="med-list-name">💊 ${escapeHtml(med.name)}</div>
+              <div class="med-list-meta">${escapeHtml(med.description)}</div>
             </div>
             <div class="med-list-right">
-              <span class="med-list-price">${med.pricing.amount} ${med.pricing.currency}</span>
+              <span class="med-list-price">${escapeHtml(med.pricing.amount)} ${escapeHtml(med.pricing.currency)}</span>
               <span class="badge ${avail ? 'badge-available' : 'badge-unavailable'}" style="font-size:.75rem;">
                 ${avail ? '✓ ' + i18n.t('details.available') : '✗ ' + i18n.t('details.out_of_stock')}
               </span>
@@ -220,20 +220,20 @@
           <div>
             <div class="ph-hero">
               <span class="icon">🏥</span>
-              <p style="opacity:.85;margin-top:.5rem;font-weight:700;">${pharmacy.name}</p>
+              <p style="opacity:.85;margin-top:.5rem;font-weight:700;">${escapeHtml(pharmacy.name)}</p>
             </div>
             <div class="details-card">
               <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:.75rem;">
-                <h1 class="details-title">${pharmacy.name}</h1>
+                <h1 class="details-title">${escapeHtml(pharmacy.name)}</h1>
                 <span class="badge badge-available" style="white-space:nowrap;">${i18n.t('details.units_in_stock', { count: available.length })}</span>
               </div>
               <div class="detail-row"><div class="detail-icon">📍</div>
-                <div><div class="detail-label">${i18n.t('details.address')}</div><div class="detail-value">${pharmacy.address || '—'}</div></div>
+                <div><div class="detail-label">${i18n.t('details.address')}</div><div class="detail-value">${escapeHtml(pharmacy.address || '—')}</div></div>
               </div>
               <div class="detail-row"><div class="detail-icon">📞</div>
                 <div><div class="detail-label">${i18n.t('details.phone')}</div>
                   <div class="detail-value">${pharmacy.phone
-                    ? `<a href="tel:${pharmacy.phone}" style="color:var(--primary);">${pharmacy.phone}</a>`
+                    ? `<a href="tel:${escapeHtml(pharmacy.phone)}" style="color:var(--primary);">${escapeHtml(pharmacy.phone)}</a>`
                     : '—'}</div>
                 </div>
               </div>

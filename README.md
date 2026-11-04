@@ -44,11 +44,14 @@ npm install
 ```
 
 ### 3. Environment Variables
-Ensure your `.env` file is set up in the root directory:
+Copy `.env.example` to `.env` and fill it in:
 ```env
 MONGODB_URI=mongodb://localhost:27017/medfinder
 PORT=5000
 NODE_ENV=development
+ADMIN_EMAIL=admin@medfinder.com
+ADMIN_PASSWORD=<choose a strong password>
+ADMIN_TOKEN_SECRET=<output of: openssl rand -hex 32>
 ```
 
 ### 4. Running the App
@@ -59,12 +62,14 @@ npm run dev
 The application will be running at `http://localhost:5000`.
 
 ### 5. Seeding Sample Data
-To populate the database with sample pharmacies and medicines for the first time, visit:
-`http://localhost:5000/api/pharmacies/seed`
+To populate an empty database with sample pharmacies and medicines, log in as admin and call:
+```bash
+curl -X POST http://localhost:5000/api/pharmacies/seed -H "Authorization: Bearer <token>"
+```
+(The token comes from `POST /api/auth/login` with `{ "email", "password" }`.)
 
 ## 🔐 Admin Access
 - **URL:** `http://localhost:5000/pages/login`
-- **Email:** `admin@medfinder.com`
-- **Password:** `admin123`
+- **Credentials:** `ADMIN_EMAIL` / `ADMIN_PASSWORD` from `.env`
 
-*(Note: Admin login is currently simulated on the frontend for demonstration purposes).*
+Login is checked on the server, which returns a signed token valid for 8 hours. Every create, update, delete and seed endpoint requires it as `Authorization: Bearer <token>`; reads and search stay public.

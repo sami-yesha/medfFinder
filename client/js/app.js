@@ -22,6 +22,17 @@ function toggleDarkMode() {
   if (btn) btn.innerHTML = next === 'dark' ? '☀️' : '🌙';
 }
 
+// ── HTML Escaping ─────────────────────────────────────────────
+// Use for every server/user value interpolated into innerHTML or Leaflet popups
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // ── Toast Notifications ───────────────────────────────────────
 function showToast(message, type = 'success') {
   const container = document.getElementById('notifications');
@@ -29,7 +40,7 @@ function showToast(message, type = 'success') {
   const icons = { success: '✅', error: '❌', warning: '⚠️' };
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
-  toast.innerHTML = `<span>${icons[type] || '💬'}</span><span>${message}</span>`;
+  toast.innerHTML = `<span>${icons[type] || '💬'}</span><span>${escapeHtml(message)}</span>`;
   container.appendChild(toast);
   setTimeout(() => {
     toast.style.opacity = '0';

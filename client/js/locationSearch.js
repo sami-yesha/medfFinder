@@ -18,13 +18,13 @@ function createPharmacyCard(ph, index) {
     <div class="loc-card" id="loc-card-${index}" role="listitem">
       <div class="loc-card-header">
         <div>
-          <h3 class="loc-card-title">🏥 ${ph.name}</h3>
-          <p class="loc-card-address">📍 ${ph.address || i18n.t('location.addr_not_avail')}</p>
+          <h3 class="loc-card-title">🏥 ${escapeHtml(ph.name)}</h3>
+          <p class="loc-card-address">📍 ${ph.address ? escapeHtml(ph.address) : i18n.t('location.addr_not_avail')}</p>
         </div>
         ${availBadge}
       </div>
       <div class="loc-card-info">
-        <span class="loc-info-item">📞 ${ph.phone || i18n.t('location.phone_not_avail')}</span>
+        <span class="loc-info-item">📞 ${ph.phone ? escapeHtml(ph.phone) : i18n.t('location.phone_not_avail')}</span>
         <span class="loc-info-item">💊 ${ph.medicineCount === 1 ? i18n.t('location.one_med_listed') : i18n.t('location.meds_listed', { count: ph.medicineCount })}</span>
       </div>
       <div class="loc-card-actions">
@@ -60,9 +60,9 @@ function plotLocationMarkers(pharmacies) {
 
     const popup = `
       <div style="font-family:Inter,sans-serif;min-width:190px;">
-        <h4 style="margin:0 0 .35rem;color:#4f46e5;">🏥 ${ph.name}</h4>
-        <p style="margin:0 0 .2rem;font-size:.82rem;color:#64748b;">📍 ${ph.address}</p>
-        <p style="margin:0 0 .55rem;font-size:.82rem;color:#64748b;">📞 ${ph.phone || '—'}</p>
+        <h4 style="margin:0 0 .35rem;color:#4f46e5;">🏥 ${escapeHtml(ph.name)}</h4>
+        <p style="margin:0 0 .2rem;font-size:.82rem;color:#64748b;">📍 ${escapeHtml(ph.address)}</p>
+        <p style="margin:0 0 .55rem;font-size:.82rem;color:#64748b;">📞 ${escapeHtml(ph.phone || '—')}</p>
         <hr style="border:none;border-top:1px solid #e2e8f0;margin-bottom:.55rem;">
         <p style="font-size:.82rem;font-weight:600;">
           💊 ${ph.medicineCount} ${i18n.t('nav.medicines')} &nbsp;|&nbsp;
@@ -151,7 +151,7 @@ async function handleLocationSearch(query) {
       }, 600);
     }
   } catch (err) {
-    grid.innerHTML = `<div class="loc-empty"><p style="color:var(--error)">❌ ${err.message}</p></div>`;
+    grid.innerHTML = `<div class="loc-empty"><p style="color:var(--error)">❌ ${escapeHtml(err.message)}</p></div>`;
     if (count) count.textContent = 'Error';
   } finally {
     if (spinner) spinner.style.display = 'none';

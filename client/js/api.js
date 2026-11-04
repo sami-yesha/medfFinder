@@ -6,19 +6,41 @@
 
 const BASE = '/api';
 
+const SESSION_KEY = 'medfinder_admin';
+
+/** Admin session saved by the login page: { email, token } */
+function getAdminSession() {
+  try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); }
+  catch { return null; }
+}
+
 /** Generic fetch wrapper with error handling */
 async function request(endpoint, options = {}) {
-  const res = await fetch(`${BASE}${endpoint}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options
-  });
+  const headers = { 'Content-Type': 'application/json' };
+  const session = getAdminSession();
+  if (session?.token) headers.Authorization = `Bearer ${session.token}`;
+
+  const res = await fetch(`${BASE}${endpoint}`, { ...options, headers });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'Request failed');
+  if (!res.ok) {
+    // Expired or invalid admin token — drop it and send admins back to login
+    if (res.status === 401 && session?.token) {
+      sessionStorage.removeItem(SESSION_KEY);
+      if (window.location.pathname.startsWith('/pages/admin')) window.location.href = '/pages/login';
+    }
+    throw new Error(data.message || 'Request failed');
+  }
   return data;
 }
 
 // ── Pharmacies ────────────────────────────────────────────────
 const API = {
+  // Admin login → { token, email, expiresIn }
+  login: (email, password) => request('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password })
+  }),
+
   // Get all pharmacies (with their medicines[])
   getPharmacies: () => request('/pharmacies'),
 
@@ -65,9 +87,10 @@ const API = {
   // Location-based pharmacy search → [{_id, name, address, phone, location, medicineCount, availableCount}]
   searchPharmaciesByLocation: (query = '') => request(`/pharmacies/search?query=${encodeURIComponent(query)}`),
 
-  // One-time database seed
-  seed: () => request('/pharmacies/seed')
+  // One-time database seed (admin only)
+  seed: () => request('/pharmacies/seed', { method: 'POST' })
 };
 
 // Make API globally available (all pages include this file)
 window.API = API;
+window.getAdminSession = getAdminSession;
