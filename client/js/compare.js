@@ -38,7 +38,7 @@ function renderComparison(rows, { currentPharmacyId = null } = {}) {
   const summary = cheapest
     ? `<div class="compare-summary">
         <strong>${i18n.t('compare.summary', { price: formatPrice(cheapest.medicine.pricing), pharmacy: escapeHtml(cheapest.pharmacy.name) })}</strong>
-        ${savings > 0 ? `<span>💰 ${i18n.t('compare.save', { amount: `${escapeHtml(savings)} ${escapeHtml(cheapest.medicine.pricing.currency)}` })}</span>` : ''}
+        ${savings > 0 ? `<span>${icon('banknote')} ${i18n.t('compare.save', { amount: `${escapeHtml(savings)} ${escapeHtml(cheapest.medicine.pricing.currency)}` })}</span>` : ''}
       </div>`
     : `<div class="compare-summary compare-summary-empty">${i18n.t('compare.none_in_stock')}</div>`;
 
@@ -53,29 +53,29 @@ function renderComparison(rows, { currentPharmacyId = null } = {}) {
     return `
       <div class="compare-row ${avail ? '' : 'compare-row-out'}">
         <div class="compare-main">
-          <div class="compare-pharmacy">🏥 ${escapeHtml(r.pharmacy.name)} ${tags}</div>
+          <div class="compare-pharmacy">${icon('store')}${escapeHtml(r.pharmacy.name)} ${tags}</div>
           <div class="compare-meta">
-            ${r.pharmacy.address ? `📍 ${escapeHtml(r.pharmacy.address)}` : ''}
+            ${r.pharmacy.address ? `${icon('map-pin')} ${escapeHtml(r.pharmacy.address)}` : ''}
             ${r.distance != null ? ` · <strong>${i18n.t('near.away', { distance: Nearby.formatDistance(r.distance) })}</strong>` : ''}
           </div>
           <div class="compare-actions">
             ${Nearby.actionButtons(r.pharmacy)}
             ${r.pharmacy._id !== currentPharmacyId
-              ? `<a class="btn-chip" href="/pages/details?pharmacyId=${r.pharmacy._id}&medicineId=${r.medicine._id}">${i18n.t('search.view_details')}</a>`
+              ? `<a class="btn-chip" href="/pages/details?pharmacyId=${r.pharmacy._id}&medicineId=${r.medicine._id}">${i18n.t('card.details')}${icon('chevron-right')}</a>`
               : ''}
           </div>
         </div>
         <div class="compare-price-col">
           <div class="compare-price">${formatPrice(r.medicine.pricing)}</div>
-          <span class="badge ${avail ? 'badge-available' : 'badge-unavailable'}">
-            ${avail ? '✓ ' + i18n.t('search.available') : '✗ ' + i18n.t('search.out_of_stock')}
-          </span>
+          ${avail
+            ? `<span class="ds-pill ds-pill-ok">${icon('check')}${i18n.t('stock.in')}</span>`
+            : `<span class="ds-pill ds-pill-bad">${icon('x')}${i18n.t('stock.out')}</span>`}
         </div>
       </div>`;
   };
 
   return `${summary}<div class="compare-list">${sorted.map(row).join('')}</div>
-    <p class="compare-disclaimer">ℹ️ ${i18n.t('compare.disclaimer')}</p>`;
+    <p class="compare-disclaimer">${icon('info')} ${i18n.t('compare.disclaimer')}</p>`;
 }
 
 // ── Modal (home page) ─────────────────────────────────────────
@@ -90,7 +90,7 @@ function ensureCompareModal() {
     <div class="compare-modal" role="dialog" aria-modal="true" aria-labelledby="compare-title">
       <div class="compare-modal-header">
         <h2 id="compare-title"></h2>
-        <button class="compare-close" aria-label="Close">✕</button>
+        <button class="compare-close" aria-label="Close">${icon('x')}</button>
       </div>
       <div id="compare-body"></div>
     </div>`;
@@ -111,7 +111,7 @@ async function openCompare(medicineName) {
   const overlay = ensureCompareModal();
   const body = overlay.querySelector('#compare-body');
   overlay.querySelector('#compare-title').textContent = i18n.t('compare.title', { name: medicineName });
-  body.innerHTML = `<p class="compare-loading">⏳ ${i18n.t('search.searching')}</p>`;
+  body.innerHTML = `<p class="compare-loading">${icon('loader-circle', 'ds-spin')} ${i18n.t('search.searching')}</p>`;
   document.body.appendChild(overlay); // move to front, e.g. when opened from the scan results
   overlay.style.display = 'flex';
   document.body.style.overflow = 'hidden';
@@ -119,7 +119,7 @@ async function openCompare(medicineName) {
   try {
     body.innerHTML = renderComparison(await fetchComparison(medicineName));
   } catch (err) {
-    body.innerHTML = `<p class="compare-loading" style="color:var(--error)">❌ ${escapeHtml(err.message)}</p>`;
+    body.innerHTML = `<p class="compare-loading" style="color:var(--error)">${icon('x')} ${escapeHtml(err.message)}</p>`;
   }
 }
 

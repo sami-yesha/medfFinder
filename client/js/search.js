@@ -1,65 +1,71 @@
 /**
  * MedFinder - Search Module
- * Fetches medicine results from the backend API and renders cards.
+ * Fetches medicine results from the backend API, renders result cards,
+ * and keeps the results map in sync.
  */
 
+const LOW_STOCK_THRESHOLD = 10; // units at or below this show "Low stock"
+
 // ── State ─────────────────────────────────────────────────────
-let lastResults = [];          // Raw results from the last search
-let sortMode    = 'recommended'; // 'recommended' | 'nearest' | 'cheapest'
-let inStockOnly = false;
-let nameCounts  = {};          // normalized medicine name → pharmacies listing it
+let lastResults  = [];            // Raw results from the last search
+let lastQuery    = '';
+let sortMode     = 'recommended'; // 'recommended' | 'nearest' | 'cheapest'
+let inStockOnly  = false;
+let nameCounts   = {};            // normalized medicine name → pharmacies listing it
+let cheapestIds  = new Set();     // medicine _ids that are the cheapest in-stock offer for their name
+let searchSeq    = 0;             // ignores responses from searches that were superseded
 
 // ── Card Template ─────────────────────────────────────────────
+function stockPill(medicine) {
+  if (!medicine.stock.isAvailable) {
+    return `<span class="ds-pill ds-pill-bad">${icon('x')}${i18n.t('stock.out')}</span>`;
+  }
+  if (medicine.stock.quantity <= LOW_STOCK_THRESHOLD) {
+    return `<span class="ds-pill ds-pill-warn">${icon('triangle-alert')}${i18n.t('stock.low')}</span>`;
+  }
+  return `<span class="ds-pill ds-pill-ok">${icon('check')}${i18n.t('stock.in')}</span>`;
+}
+
 function createMedicineCard(result) {
   const { pharmacy, medicine } = result;
-  const avail     = medicine.stock.isAvailable;
-  const badgeCls  = avail ? 'badge-available' : 'badge-unavailable';
-  const badgeTxt  = avail ? `✓ ${i18n.t('search.available')}` : `✗ ${i18n.t('search.out_of_stock')}`;
-  const detailUrl = `/pages/details?pharmacyId=${pharmacy._id}&medicineId=${medicine._id}`;
+  const avail        = medicine.stock.isAvailable;
+  const detailUrl    = `/pages/details?pharmacyId=${pharmacy._id}&medicineId=${medicine._id}`;
   const compareCount = nameCounts[normalizeName(medicine.name)] || 0;
+  const km           = Nearby.distanceTo(pharmacy.location);
+  const directions   = Nearby.directionsUrl(pharmacy.location);
+  const tel          = Nearby.telUrl(pharmacy.phone);
+  const area         = pharmacy.address ? ` · ${escapeHtml(pharmacy.address)}` : '';
 
   return `
-    <div class="card" role="listitem">
-      <div class="card-header">
-        <h3 class="card-title">${escapeHtml(medicine.name)}</h3>
-        <span class="badge ${badgeCls}">${badgeTxt}</span>
+    <article class="ds-card ${avail ? '' : 'is-out'}" role="listitem">
+      <h3 class="ds-card-name">${escapeHtml(medicine.name)}</h3>
+      <div class="ds-card-price"><b>${escapeHtml(medicine.pricing.amount)}</b><small>${escapeHtml(medicine.pricing.currency)}</small></div>
+      <div class="ds-card-pharmacy">${icon('store')}<span><strong>${escapeHtml(pharmacy.name)}</strong>${area}</span></div>
+      <div class="ds-card-meta">
+        ${stockPill(medicine)}
+        ${km != null ? `<span class="ds-pill ds-pill-info">${icon('navigation')}${Nearby.formatDistance(km)}</span>` : ''}
+        ${cheapestIds.has(medicine._id) ? `<span class="ds-pill ds-pill-brand">${icon('trophy')}${i18n.t('compare.cheapest')}</span>` : ''}
       </div>
-      ${Nearby.distanceBadge(pharmacy.location)}
-      <p class="card-desc">${escapeHtml(medicine.description)}</p>
-      <div class="card-info">
-        <div class="info-item">
-          <span class="info-label">📦 ${i18n.t('search.quantity')}</span>
-          <span class="info-value">${avail ? escapeHtml(medicine.stock.quantity) + ' ' + i18n.t('search.units') : '—'}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">💰 ${i18n.t('search.price')}</span>
-          <span class="info-value" style="color:var(--primary);font-size:1.05rem;">
-            ${escapeHtml(medicine.pricing.amount)} ${escapeHtml(medicine.pricing.currency)}
-          </span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">🏥 ${i18n.t('search.pharmacy')}</span>
-          <span class="info-value">${escapeHtml(pharmacy.name)}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">📍 ${i18n.t('search.address')}</span>
-          <span class="info-value" style="font-size:0.85rem;">${escapeHtml(pharmacy.address)}</span>
-        </div>
-      </div>
-      <div class="card-actions">
-        ${Nearby.actionButtons(pharmacy)}
-        <button class="btn-chip" onclick="openPharmacyPopup('${pharmacy._id}')">🗺️ ${i18n.t('nav.map')}</button>
-      </div>
-      <div style="display:flex;gap:0.5rem;">
-        <a href="${detailUrl}" class="btn-view" style="flex:1;text-align:center;">
-          ${i18n.t('search.view_details')}
-        </a>
+      <div class="ds-card-actions">
+        ${directions ? `<a class="ds-btn ds-btn-ghost ds-btn-sm" href="${directions}" target="_blank" rel="noopener">${icon('navigation-2')}${i18n.t('near.directions')}</a>` : ''}
+        ${tel ? `<a class="ds-btn ds-btn-ghost ds-btn-sm ds-btn-icon" href="${tel}" aria-label="${i18n.t('near.call')}" title="${i18n.t('near.call')}">${icon('phone')}</a>` : ''}
+        <button class="ds-btn ds-btn-ghost ds-btn-sm ds-btn-icon" data-map="${pharmacy._id}" aria-label="${i18n.t('map.show_map')}" title="${i18n.t('map.show_map')}">${icon('map')}</button>
+        <a class="ds-link" href="${detailUrl}">${i18n.t('card.details')}${icon('chevron-right')}</a>
+        <span class="ds-spacer"></span>
         ${compareCount > 1
-          ? `<button class="btn-view btn-compare" data-compare="${escapeHtml(medicine.name)}">⚖️ ${i18n.t('compare.button', { count: compareCount })}</button>`
+          ? `<button class="ds-btn ds-btn-soft ds-btn-sm" data-compare="${escapeHtml(medicine.name)}">${icon('scale')}${i18n.t('compare.prices', { count: compareCount })}</button>`
           : ''}
       </div>
-    </div>
-  `;
+    </article>`;
+}
+
+function skeletonCards(count = 3) {
+  return Array.from({ length: count }, () => `
+    <div class="ds-card ds-skeleton" aria-hidden="true">
+      <span class="ds-sk ds-sk-title"></span><span class="ds-sk ds-sk-price"></span>
+      <span class="ds-sk ds-sk-line"></span>
+      <span class="ds-sk ds-sk-pills"></span>
+    </div>`).join('');
 }
 
 // ── Sort & Filter ─────────────────────────────────────────────
@@ -77,7 +83,7 @@ function applySortAndFilter(results) {
 }
 
 function updateSortChips() {
-  document.querySelectorAll('.sort-chip[data-sort]').forEach(chip => {
+  document.querySelectorAll('.ds-chip[data-sort]').forEach(chip => {
     chip.classList.toggle('active', chip.dataset.sort === sortMode);
   });
   document.getElementById('chip-in-stock')?.classList.toggle('active', inStockOnly);
@@ -93,24 +99,46 @@ async function setSortMode(mode) {
   renderCards(lastResults);
 }
 
-// ── Render Grid ───────────────────────────────────────────────
+function updateResultsHeader(count) {
+  const title = document.getElementById('results-title');
+  const total = document.getElementById('results-count');
+  if (title) {
+    title.textContent = lastQuery
+      ? i18n.t('results.for', { query: lastQuery })
+      : (Nearby.location ? i18n.t('results.near_you') : i18n.t('results.all'));
+  }
+  if (total) total.textContent = count === 1 ? i18n.t('results.count_one') : i18n.t('results.count', { count });
+}
+
+// ── Render List ───────────────────────────────────────────────
 function renderCards(results) {
   const grid = document.getElementById('medicine-grid');
   if (!grid) return;
 
   lastResults = results;
   nameCounts = {};
+  const cheapestByName = {};
   results.forEach(r => {
     const key = normalizeName(r.medicine.name);
     nameCounts[key] = (nameCounts[key] || 0) + 1;
+    if (r.medicine.stock.isAvailable && (!cheapestByName[key] || r.medicine.pricing.amount < cheapestByName[key].pricing.amount)) {
+      cheapestByName[key] = r.medicine;
+    }
   });
+  // Only tag "Cheapest" when there's something to be cheaper than
+  cheapestIds = new Set(Object.entries(cheapestByName)
+    .filter(([key]) => nameCounts[key] > 1)
+    .map(([, med]) => med._id));
+
   results = applySortAndFilter(results);
+  updateResultsHeader(results.length);
+  if (typeof updateResultsMap === 'function') updateResultsMap(results, { showPrices: !!lastQuery });
 
   if (!results.length) {
     grid.innerHTML = `
-      <div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;color:var(--text-muted);">
-        <div style="font-size:4rem;margin-bottom:1rem;">🔍</div>
-        <h3 style="color:var(--text-main);margin-bottom:0.5rem;">${i18n.t('search.no_medicine_found')}</h3>
+      <div class="ds-empty">
+        <span class="ds-empty-icon">${icon('search-x')}</span>
+        <h3>${i18n.t('search.no_medicine_found')}</h3>
         <p>${i18n.t('search.try_different')}</p>
       </div>`;
     return;
@@ -122,14 +150,27 @@ function renderCards(results) {
 async function handleSearch(query) {
   const grid = document.getElementById('medicine-grid');
   if (!grid) return;
-  grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted);">⏳ ${i18n.t('search.searching')}</div>`;
+  const seq = ++searchSeq;
+  lastQuery = query.trim();
+  grid.innerHTML = skeletonCards();
   try {
-    const results = await API.search(query);
-    renderCards(results);
+    const results = await API.search(lastQuery);
+    if (seq === searchSeq) renderCards(results);
   } catch (err) {
-    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--error);">❌ ${escapeHtml(err.message)}</div>`;
+    if (seq === searchSeq) {
+      grid.innerHTML = `<div class="ds-empty ds-empty-error"><span class="ds-empty-icon">${icon('x')}</span><p>${escapeHtml(err.message)}</p></div>`;
+    }
   }
 }
+
+/** Put a query in the search box and run it (used by popular chips and the scan modal) */
+function searchFor(query) {
+  const input = document.getElementById('hero-search');
+  if (input) input.value = query;
+  handleSearch(query);
+  document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
+}
+window.searchFor = searchFor;
 
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
@@ -137,24 +178,32 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!grid) return;
   if (Nearby.location) sortMode = 'nearest';
   updateSortChips();
+  grid.innerHTML = skeletonCards();
 
   // Initial load — all medicines (after translations, so card labels aren't raw keys)
   await i18n.init();
   handleSearch('');
 
-  // Bind search inputs (hero + section)
-  const inputs = document.querySelectorAll('.search-bar, #search-input');
+  const input = document.getElementById('hero-search');
   let debounce;
-  inputs.forEach(input => {
-    input.addEventListener('input', e => {
-      inputs.forEach(i => { if (i !== e.target) i.value = e.target.value; });
+  input?.addEventListener('input', e => {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => handleSearch(e.target.value), 300);
+  });
+  input?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
       clearTimeout(debounce);
-      debounce = setTimeout(() => handleSearch(e.target.value), 300);
-    });
+      handleSearch(input.value);
+      document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+
+  document.querySelectorAll('[data-popular]').forEach(btn => {
+    btn.addEventListener('click', () => searchFor(btn.dataset.popular));
   });
 
   // Sort / filter chips
-  document.querySelectorAll('.sort-chip[data-sort]').forEach(chip => {
+  document.querySelectorAll('.ds-chip[data-sort]').forEach(chip => {
     chip.addEventListener('click', () => setSortMode(chip.dataset.sort));
   });
   document.getElementById('chip-in-stock')?.addEventListener('click', () => {
@@ -163,10 +212,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderCards(lastResults);
   });
 
-  // Compare buttons (delegated so medicine names never go inside inline JS)
+  // Card buttons (delegated so names never go inside inline JS)
   grid.addEventListener('click', e => {
-    const btn = e.target.closest('[data-compare]');
-    if (btn) openCompare(btn.dataset.compare);
+    const compareBtn = e.target.closest('[data-compare]');
+    if (compareBtn) return openCompare(compareBtn.dataset.compare);
+    const mapBtn = e.target.closest('[data-map]');
+    if (mapBtn) focusPharmacyOnMap(mapBtn.dataset.map);
   });
 
   // Location found or cleared → jump to nearest-first, or back to the default order
@@ -176,10 +227,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderCards(lastResults);
   });
 
-  // Listen for language changes to re-render
-  window.addEventListener('languageChanged', () => {
-    const query = document.getElementById('search-input')?.value || '';
-    handleSearch(query);
-  });
+  // Re-render in the new language without refetching
+  window.addEventListener('languageChanged', () => renderCards(lastResults));
 });
-

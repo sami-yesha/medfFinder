@@ -4,12 +4,17 @@
  */
 
 // ── Dark Mode ─────────────────────────────────────────────────
+// Icon for the toggle: sun/moon SVGs where icons.js is loaded, emoji elsewhere
+const themeIcon = (theme) => typeof icon === 'function'
+  ? icon(theme === 'dark' ? 'sun' : 'moon')
+  : (theme === 'dark' ? '☀️' : '🌙');
+
 function initDarkMode() {
   const saved = localStorage.getItem('medfinder_theme') || 'light';
   document.documentElement.setAttribute('data-theme', saved);
   const btn = document.getElementById('dark-mode-toggle');
   if (btn) {
-    btn.innerHTML = saved === 'dark' ? '☀️' : '🌙';
+    btn.innerHTML = themeIcon(saved);
     btn.addEventListener('click', toggleDarkMode);
   }
 }
@@ -19,7 +24,7 @@ function toggleDarkMode() {
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('medfinder_theme', next);
   const btn = document.getElementById('dark-mode-toggle');
-  if (btn) btn.innerHTML = next === 'dark' ? '☀️' : '🌙';
+  if (btn) btn.innerHTML = themeIcon(next);
 }
 
 // ── HTML Escaping ─────────────────────────────────────────────

@@ -63,7 +63,7 @@ const Nearby = {
   distanceBadge(pharmacyLocation) {
     const km = this.distanceTo(pharmacyLocation);
     if (km == null) return '';
-    return `<span class="distance-badge">📍 ${i18n.t('near.away', { distance: this.formatDistance(km) })}</span>`;
+    return `<span class="distance-badge">${icon('navigation')} ${i18n.t('near.away', { distance: this.formatDistance(km) })}</span>`;
   },
 
   /** Google Maps turn-by-turn link (opens the Maps app on phones) */
@@ -83,8 +83,8 @@ const Nearby = {
     const dir = this.directionsUrl(pharmacy.location);
     const tel = this.telUrl(pharmacy.phone);
     return `
-      ${dir ? `<a class="btn-chip" href="${dir}" target="_blank" rel="noopener">🧭 ${i18n.t('near.directions')}</a>` : ''}
-      ${tel ? `<a class="btn-chip" href="${tel}">📞 ${i18n.t('near.call')}</a>` : ''}`;
+      ${dir ? `<a class="btn-chip" href="${dir}" target="_blank" rel="noopener">${icon('navigation-2')}${i18n.t('near.directions')}</a>` : ''}
+      ${tel ? `<a class="btn-chip" href="${tel}">${icon('phone')}${i18n.t('near.call')}</a>` : ''}`;
   },
 
   /** Drop (or move) a "You are here" marker on a Leaflet map */

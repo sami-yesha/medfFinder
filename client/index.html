@@ -5,274 +5,154 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MedFinder – Find Medicines & Nearby Pharmacies</title>
   <meta name="description" content="Search for medicines, check availability, compare prices, and locate nearby pharmacies." />
+  <meta name="theme-color" content="#0f766e" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="/css/style.css" />
-  <style>
-    #dark-mode-toggle { background:var(--bg-main); border:1px solid var(--border); border-radius:.5rem; width:2.5rem; height:2.5rem; cursor:pointer; font-size:1.1rem; display:flex; align-items:center; justify-content:center; transition:var(--transition); }
-    #dark-mode-toggle:hover { border-color:var(--primary); }
-    #hamburger { display:none; background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-main); }
-    .stats-row { display:flex; gap:2rem; margin-top:2rem; justify-content:center; flex-wrap:wrap; }
-    .stat { text-align:center; }
-    .stat-number { font-size:2.5rem; font-weight:800; color:white; }
-    .stat-label  { font-size:.9rem; opacity:.8; }
-    .section-controls { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1rem; }
-    #search-input { padding:.75rem 1rem .75rem 2.75rem; border:1px solid var(--border); border-radius:.75rem; font-size:.95rem; outline:none; width:300px; background:var(--bg-card); color:var(--text-main); transition:var(--transition); }
-    #search-input:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(79,70,229,.1); }
-    #section-search-wrap { position:relative; }
-    .search-icon-sm { position:absolute; left:.9rem; top:50%; transform:translateY(-50%); color:var(--text-muted); }
-    @media (max-width:768px) {
-      #hamburger { display:block; }
-      #nav-links { display:none; position:absolute; top:4.5rem; left:0; right:0; background:var(--bg-card); border-bottom:1px solid var(--border); padding:1rem; flex-direction:column; gap:1rem; z-index:999; }
-      #nav-links.nav-open { display:flex; }
-    }
-
-    /* ── Location Search Section ───────────────────────────── */
-    #location-search-section { padding: 3.5rem 0; background: var(--bg-main); border-top: 1px solid var(--border); }
-    .loc-search-box { display:flex; gap:.75rem; flex-wrap:wrap; margin: 1.5rem 0 1rem; }
-    #loc-search-input {
-      flex: 1; min-width: 220px; padding: .875rem 1.25rem;
-      border: 1.5px solid var(--border); border-radius: .875rem;
-      font-size: .975rem; outline: none;
-      background: var(--bg-card); color: var(--text-main);
-      transition: border-color .2s, box-shadow .2s;
-    }
-    #loc-search-input:focus { border-color: var(--secondary); box-shadow: 0 0 0 3px rgba(6,182,212,.12); }
-    #loc-search-input::placeholder { color: var(--text-muted); }
-    #loc-search-btn {
-      padding: .875rem 1.75rem; border-radius: .875rem; border: none;
-      background: linear-gradient(135deg, var(--secondary), #0284c7);
-      color: #fff; font-weight: 700; font-size: .975rem;
-      cursor: pointer; transition: transform .15s, box-shadow .15s;
-      display: flex; align-items: center; gap: .5rem; white-space: nowrap;
-    }
-    #loc-search-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(6,182,212,.35); }
-    #loc-search-btn:active { transform: translateY(0); }
-    #loc-near-btn {
-      padding: .875rem 1.5rem; border-radius: .875rem;
-      border: 1.5px solid var(--primary); background: var(--bg-card);
-      color: var(--primary); font-weight: 700; font-size: .975rem;
-      cursor: pointer; white-space: nowrap; transition: background .15s, color .15s;
-    }
-    #loc-near-btn:hover:not(:disabled) { background: var(--primary); color: #fff; }
-    #loc-near-btn:disabled { opacity: .7; cursor: wait; }
-    #loc-clear-btn {
-      padding: .875rem 1.25rem; border-radius: .875rem;
-      border: 1.5px solid var(--border); background: var(--bg-card);
-      color: var(--text-muted); font-size: .9rem; cursor: pointer;
-      transition: border-color .2s, color .2s;
-    }
-    #loc-clear-btn:hover { border-color: var(--error); color: var(--error); }
-    .loc-hints { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom: 1.25rem; }
-    .loc-hint-chip {
-      padding: .3rem .8rem; border-radius: 99px;
-      background: color-mix(in srgb, var(--secondary) 12%, transparent);
-      color: var(--secondary); font-size: .8rem; font-weight: 600;
-      cursor: pointer; border: 1px solid color-mix(in srgb, var(--secondary) 25%, transparent);
-      transition: background .15s;
-    }
-    .loc-hint-chip:hover { background: color-mix(in srgb, var(--secondary) 22%, transparent); }
-    #location-spinner { display:none; text-align:center; padding:1rem; color:var(--text-muted); font-size:.95rem; }
-    .loc-meta { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.5rem; margin-bottom: 1rem; min-height: 1.5rem; }
-    #location-count { font-weight: 600; color: var(--secondary); font-size: .9rem; }
-    #location-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; }
-    .loc-card {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 1rem; padding: 1.25rem;
-      transition: transform .2s, box-shadow .2s, border-color .2s;
-    }
-    .loc-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,.09); border-color: var(--secondary); }
-    .loc-card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:.75rem; margin-bottom:.75rem; }
-    .loc-card-title { font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin: 0 0 .2rem; }
-    .loc-card-address { font-size: .82rem; color: var(--text-muted); margin: 0; }
-    .loc-badge { padding: .2rem .65rem; border-radius: 99px; font-size: .75rem; font-weight: 700; white-space: nowrap; }
-    .loc-badge-avail { background: color-mix(in srgb, #22c55e 15%, transparent); color: #16a34a; border: 1px solid color-mix(in srgb, #22c55e 30%, transparent); }
-    .loc-badge-none  { background: color-mix(in srgb, #ef4444 12%, transparent); color: #dc2626; border: 1px solid color-mix(in srgb, #ef4444 25%, transparent); }
-    .loc-card-info { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom: 1rem; }
-    .loc-info-item { font-size: .83rem; color: var(--text-muted); background: var(--bg-main); padding: .25rem .65rem; border-radius: .5rem; }
-    .loc-card-actions { display:flex; gap:.6rem; }
-    .loc-btn-map {
-      flex: 0 0 auto; padding: .6rem 1rem; border-radius: .6rem;
-      border: 1.5px solid var(--secondary); background: transparent;
-      color: var(--secondary); font-size: .85rem; font-weight: 600;
-      cursor: pointer; transition: background .15s, color .15s;
-    }
-    .loc-btn-map:hover { background: var(--secondary); color: #fff; }
-    .loc-btn-details {
-      flex: 1; text-align: center; padding: .6rem 1rem; border-radius: .6rem;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: #fff; font-size: .85rem; font-weight: 600; text-decoration: none;
-      transition: opacity .15s;
-    }
-    .loc-btn-details:hover { opacity: .88; }
-    .loc-empty { grid-column:1/-1; text-align:center; padding:3.5rem 1rem; color:var(--text-muted); }
-    .loc-empty-icon { font-size: 3.5rem; margin-bottom: .75rem; }
-    .loc-empty h3 { color: var(--text-main); margin-bottom: .35rem; }
-    @media (max-width:600px) {
-      .loc-search-box { flex-direction:column; }
-      #loc-search-btn, #loc-near-btn, #loc-clear-btn { width:100%; justify-content:center; }
-    }
-  </style>
+  <link rel="stylesheet" href="/css/ds.css" />
 </head>
-<body>
+<body class="ds-page">
   <div id="notifications"></div>
 
   <!-- NAVBAR -->
-  <nav class="navbar" role="navigation">
-    <div class="container nav-container">
-      <a href="/" class="logo">💊 <span data-i18n="common.app_name">MedFinder</span></a>
-      <ul class="nav-links" id="nav-links">
-        <li><a href="/" class="nav-link" data-i18n="nav.home">Home</a></li>
-        <li><a href="#search-section" class="nav-link" data-i18n="nav.medicines">Medicines</a></li>
-        <li><a href="#location-search-section" class="nav-link" data-i18n="nav.by_location">By Location</a></li>
-        <li><a href="#pharmacies-section" class="nav-link" data-i18n="nav.map">Map</a></li>
-      </ul>
-      <div style="display:flex;gap:.75rem;align-items:center;">
-        <select id="language-switcher" aria-label="Select Language" onchange="i18n.switchLanguage(this.value)">
+  <nav class="ds-nav">
+    <div class="ds-container ds-nav-inner">
+      <a href="/" class="ds-logo"><span class="ds-logo-mark"><i data-icon="pill"></i></span><span data-i18n="common.app_name">MedFinder</span></a>
+      <div class="ds-nav-links">
+        <a href="#results" class="active" data-i18n="nav.find">Find medicine</a>
+        <a href="#how" data-i18n="nav.how">How it works</a>
+      </div>
+      <div class="ds-nav-end">
+        <select id="language-switcher" class="ds-select" aria-label="Select Language" onchange="i18n.switchLanguage(this.value)">
           <option value="en">English</option>
           <option value="am">አማርኛ</option>
         </select>
-        <button id="dark-mode-toggle" aria-label="Toggle dark mode">🌙</button>
-        <button id="hamburger" aria-label="Menu">☰</button>
+        <button id="dark-mode-toggle" class="ds-btn ds-btn-ghost ds-btn-icon" aria-label="Toggle dark mode"></button>
       </div>
     </div>
   </nav>
 
   <!-- HERO -->
-  <section class="hero" aria-label="Hero">
-    <div class="container">
-      <h1 data-i18n="hero.title">Find Your Medicine,<br>Fast & Easy 💊</h1>
-      <p data-i18n="hero.subtitle">Search medicines, check availability, compare prices, and locate nearby pharmacies in Ethiopia.</p>
-      <div class="search-container">
-        <span class="search-icon">🔍</span>
-        <input type="search" class="search-bar" id="hero-search" placeholder="Search Paracetamol, Amoxicillin..." data-i18n="hero.search_placeholder" autocomplete="off" aria-label="Search medicines" />
-      </div>
-      <div class="hero-locate-row">
-        <button id="hero-scan-btn" class="hero-locate-btn hero-scan-btn" type="button" onclick="openScan()">📷 <span data-i18n="scan.button">Scan prescription</span></button>
-        <button id="hero-locate-btn" class="hero-locate-btn" type="button">📍 <span data-i18n="near.use_location">Use my location</span></button>
-        <span id="hero-locate-status" class="hero-locate-status" aria-live="polite"></span>
-      </div>
-      <div class="stats-row" id="stats-row">
-        <div class="stat"><div class="stat-number" id="stat-total">—</div><div class="stat-label" data-i18n="hero.stats.medicines">Medicines</div></div>
-        <div class="stat"><div class="stat-number" id="stat-avail">—</div><div class="stat-label" data-i18n="hero.stats.in_stock">In Stock</div></div>
-        <div class="stat"><div class="stat-number" id="stat-pharms">—</div><div class="stat-label" data-i18n="hero.stats.pharmacies">Pharmacies</div></div>
-      </div>
-    </div>
-  </section>
+  <header class="ds-hero">
+    <div class="ds-container ds-hero-grid">
+      <div>
+        <span class="ds-eyebrow"><i data-icon="badge-check"></i><span data-i18n="home.eyebrow">Live stock from pharmacies near you</span></span>
+        <h1 data-i18n="home.title">Find your medicine <em>nearby</em> — in seconds.</h1>
+        <p class="ds-hero-sub" data-i18n="home.subtitle">See which pharmacy has it in stock, compare prices, and get directions. Or just scan your prescription.</p>
 
-  <!-- SEARCH RESULTS -->
-  <section id="search-section" aria-label="Search results">
-    <div class="container">
-      <div class="section-controls">
-        <div>
-          <h2 class="section-title" data-i18n="search.title">All Medicines</h2>
-          <p class="section-subtitle" data-i18n="search.subtitle">Browse and search our medicine database</p>
+        <div class="ds-search" role="search">
+          <i data-icon="search" class="ds-search-icon"></i>
+          <input type="search" id="hero-search" placeholder="Search Paracetamol, Amoxicillin..." data-i18n="hero.search_placeholder" autocomplete="off" aria-label="Search medicines" />
+          <div class="ds-search-actions">
+            <button id="hero-scan-btn" class="ds-btn ds-btn-soft" type="button" onclick="openScan()"><i data-icon="scan-line"></i><span data-i18n="home.scan">Scan</span></button>
+            <button id="hero-locate-btn" class="ds-btn ds-btn-primary" type="button"><i data-icon="locate-fixed"></i><span data-i18n="near.near_me">Near me</span></button>
+          </div>
         </div>
-        <div id="section-search-wrap">
-          <span class="search-icon-sm">🔍</span>
-          <input type="search" id="search-input" placeholder="Filter medicines..." data-i18n="search.filter_placeholder" autocomplete="off" />
+        <p id="hero-locate-status" class="ds-locate-status" aria-live="polite"></p>
+        <div class="ds-popular">
+          <span data-i18n="home.popular">Popular:</span>
+          <button type="button" data-popular="Paracetamol">Paracetamol</button>
+          <button type="button" data-popular="Amoxicillin">Amoxicillin</button>
+          <button type="button" data-popular="Metformin">Metformin</button>
+          <button type="button" data-popular="Omeprazole">Omeprazole</button>
+        </div>
+
+        <div class="ds-features">
+          <div class="ds-feature"><span class="ds-feature-icon"><i data-icon="scan-line"></i></span><div><strong data-i18n="home.f_scan_title">Scan a prescription</strong><span data-i18n="home.f_scan_text">Read on your phone, never uploaded</span></div></div>
+          <div class="ds-feature"><span class="ds-feature-icon"><i data-icon="map-pin"></i></span><div><strong data-i18n="home.f_near_title">Nearest in stock</strong><span data-i18n="home.f_near_text">Sorted by real distance</span></div></div>
+          <div class="ds-feature"><span class="ds-feature-icon"><i data-icon="scale"></i></span><div><strong data-i18n="home.f_compare_title">Compare prices</strong><span data-i18n="home.f_compare_text">See who's cheapest</span></div></div>
         </div>
       </div>
-      <div class="sort-bar" role="toolbar" aria-label="Sort and filter">
-        <span class="sort-label" data-i18n="sort.label">Sort:</span>
-        <button class="sort-chip" data-sort="recommended" data-i18n="sort.recommended">Recommended</button>
-        <button class="sort-chip" data-sort="nearest">📍 <span data-i18n="sort.nearest">Nearest</span></button>
-        <button class="sort-chip" data-sort="cheapest">💰 <span data-i18n="sort.cheapest">Cheapest</span></button>
-        <span class="sort-divider"></span>
-        <button class="sort-chip" id="chip-in-stock">✓ <span data-i18n="sort.in_stock_only">In stock only</span></button>
+
+      <!-- Illustrative preview of the scan feature (desktop only, decorative) -->
+      <div class="ds-hero-preview" aria-hidden="true">
+        <div class="ds-preview-card">
+          <div class="ds-preview-head">
+            <span class="ds-feature-icon"><i data-icon="scan-line"></i></span>
+            <div><strong data-i18n="home.preview_title">Prescription scanned</strong><span data-i18n="home.preview_sub">3 medicines found</span></div>
+          </div>
+          <div class="ds-preview-row"><div><b>Amoxicillin 500 mg</b><small>Health Pharmacy · 4.3 km</small></div><span class="ds-pill ds-pill-ok" data-i18n="stock.in">In stock</span><span class="ds-preview-price">90 ETB</span></div>
+          <div class="ds-preview-row"><div><b>Paracetamol 500 mg</b><small>Abel's Pharmacy · 200 m</small></div><span class="ds-pill ds-pill-ok" data-i18n="stock.in">In stock</span><span class="ds-preview-price">18 ETB</span></div>
+          <div class="ds-preview-row"><div><b>Omeprazole 20 mg</b><small>City Medicals · 5.8 km</small></div><span class="ds-pill ds-pill-ok" data-i18n="stock.in">In stock</span><span class="ds-preview-price">35 ETB</span></div>
+        </div>
+        <div class="ds-preview-float"><i data-icon="navigation"></i><span data-i18n="home.preview_nearest">Nearest: 200 m away</span></div>
       </div>
-      <div class="medicine-grid" id="medicine-grid" role="list"></div>
+    </div>
+  </header>
+
+  <!-- RESULTS: list + map -->
+  <main id="results" class="ds-container ds-results">
+    <div>
+      <div class="ds-toolbar">
+        <div class="ds-toolbar-title"><h2 id="results-title">All medicines</h2><span id="results-count"></span></div>
+        <button class="ds-chip" data-sort="recommended"><span data-i18n="sort.recommended">Recommended</span></button>
+        <button class="ds-chip" data-sort="nearest"><i data-icon="navigation"></i><span data-i18n="sort.nearest">Nearest</span></button>
+        <button class="ds-chip" data-sort="cheapest"><i data-icon="banknote"></i><span data-i18n="sort.cheapest">Cheapest</span></button>
+        <span class="ds-divider"></span>
+        <button class="ds-chip" id="chip-in-stock"><i data-icon="check"></i><span data-i18n="sort.in_stock_only">In stock only</span></button>
+      </div>
+      <div class="ds-list" id="medicine-grid" role="list" aria-live="polite"></div>
+    </div>
+
+    <aside class="ds-results-map" id="map-panel" aria-label="Pharmacy map">
+      <div id="results-map" class="ds-map" role="application"></div>
+    </aside>
+  </main>
+
+  <button class="ds-btn ds-btn-primary ds-map-fab" id="map-fab" type="button">
+    <span class="fab-map"><i data-icon="map"></i><span data-i18n="map.show_map">Map</span></span>
+    <span class="fab-list"><i data-icon="list"></i><span data-i18n="map.show_list">List</span></span>
+  </button>
+
+  <!-- HOW IT WORKS -->
+  <section id="how" class="ds-how">
+    <div class="ds-container">
+      <h2 class="ds-section-title" data-i18n="how.title">How it works</h2>
+      <div class="ds-steps">
+        <div class="ds-step"><span class="ds-step-num">1</span><i data-icon="search" class="ds-step-icon"></i><h3 data-i18n="how.s1_title">Search or scan</h3><p data-i18n="how.s1_text">Type a medicine name, or photograph your prescription and we'll read it for you.</p></div>
+        <div class="ds-step"><span class="ds-step-num">2</span><i data-icon="map-pin" class="ds-step-icon"></i><h3 data-i18n="how.s2_title">See who has it</h3><p data-i18n="how.s2_text">Pharmacies with it in stock come first, sorted by distance, with prices side by side.</p></div>
+        <div class="ds-step"><span class="ds-step-num">3</span><i data-icon="navigation-2" class="ds-step-icon"></i><h3 data-i18n="how.s3_title">Go or call ahead</h3><p data-i18n="how.s3_text">Get directions in one tap, or call the pharmacy to confirm before you leave.</p></div>
+      </div>
     </div>
   </section>
 
-  <!-- LOCATION SEARCH SECTION -->
-  <section id="location-search-section" aria-label="Find pharmacies by location">
-    <div class="container">
-      <h2 class="section-title" data-i18n="location.title">Find Pharmacies by Location 📍</h2>
-      <p class="section-subtitle" data-i18n="location.subtitle">Search pharmacies by city or area — results come directly from our database</p>
-
-      <!-- Search Box -->
-      <div class="loc-search-box">
-        <input
-          type="search"
-          id="loc-search-input"
-          placeholder="e.g. Mekane Selam,Dessie, Gimba"
-          data-i18n="location.input_placeholder"
-          autocomplete="off"
-          aria-label="Search pharmacies by location" />
-        <button id="loc-search-btn" data-i18n="location.search_btn">🔍 Search</button>
-        <button id="loc-near-btn" type="button">📍 <span data-i18n="near.near_me">Near me</span></button>
-        <button id="loc-clear-btn" title="Clear results" style="display:none;" data-i18n="location.clear_btn">✕ Clear</button>
-      </div>
-
-      <!-- Quick Hint Chips -->
-      <div class="loc-hints" aria-label="Quick search suggestions">
-        <span class="loc-hint-chip" onclick="document.getElementById('loc-search-input').value='Mekane Selam'; document.getElementById('loc-search-btn').click()">Mekane Selam</span>
-        <span class="loc-hint-chip" onclick="document.getElementById('loc-search-input').value='Dessie'; document.getElementById('loc-search-btn').click()">Dessie</span>
-        <span class="loc-hint-chip" onclick="document.getElementById('loc-search-input').value='Gimba'; document.getElementById('loc-search-btn').click()">Gimba</span>
-      </div>
-
-      <!-- Loading & Result Count -->
-      <div id="location-spinner" data-i18n="location.searching">⏳ Searching pharmacies…</div>
-      <div class="loc-meta">
-        <span id="location-count"></span>
-      </div>
-
-      <!-- Result Cards Grid -->
-      <div id="location-grid" role="list" aria-live="polite"></div>
+  <footer class="ds-footer">
+    <div class="ds-container ds-footer-inner">
+      <a href="/" class="ds-logo"><span class="ds-logo-mark"><i data-icon="pill"></i></span><span data-i18n="common.app_name">MedFinder</span></a>
+      <p data-i18n="footer.short">Helping you find medicines faster.</p>
     </div>
-  </section>
-
-  <!-- MAP -->
-  <section style="background:var(--bg-card);border-top:1px solid var(--border);" id="pharmacies-section">
-    <div class="container">
-      <h2 class="section-title" data-i18n="map.title">Pharmacy Map 🗺️</h2>
-      <p class="section-subtitle" data-i18n="map.subtitle">All pharmacies plotted — search by location above to filter markers</p>
-      <div id="map" role="application" aria-label="Pharmacy map"></div>
-    </div>
-  </section>
-
-  <!-- FOOTER -->
-  <footer style="background:var(--bg-card);border-top:1px solid var(--border);padding:2rem 0;text-align:center;color:var(--text-muted);">
-    <p>💊 <strong><span data-i18n="common.app_name">MedFinder</span> — <span data-i18n="footer.tagline">Helping you find medicines faster.</span></strong></p>
   </footer>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/js/icons.js"></script>
+  <script>renderStaticIcons();</script>
   <script src="/js/i18n.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/app.js"></script>
   <script src="/js/nearby.js"></script>
   <script src="/js/compare.js"></script>
   <script src="/js/scan.js"></script>
+  <script src="/js/resultsMap.js"></script>
   <script src="/js/search.js"></script>
-  <script src="/js/map.js"></script>
-  <script src="/js/locationSearch.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      // Initialize i18n
       await i18n.init();
 
-      // Hero search syncs to section search
-      const heroInput = document.getElementById('hero-search');
-      const secInput  = document.getElementById('search-input');
-      heroInput?.addEventListener('input', e => {
-        secInput.value = e.target.value;
-        secInput.dispatchEvent(new Event('input'));
-        document.getElementById('search-section').scrollIntoView({ behavior:'smooth' });
-      });
-
-      // "Use my location" → results re-sort nearest first
+      // "Near me" → results re-sort nearest first
       const locateBtn    = document.getElementById('hero-locate-btn');
       const locateStatus = document.getElementById('hero-locate-status');
-      const showLocated  = () => { locateStatus.textContent = `✓ ${i18n.t('near.located')}`; };
+      const showLocated  = () => {
+        locateStatus.innerHTML = `${icon('check')} ${i18n.t('near.located')}`;
+        locateBtn.classList.add('is-on');
+      };
       if (Nearby.location) showLocated();
       window.addEventListener('languageChanged', () => { if (Nearby.location) showLocated(); });
-      locateBtn?.addEventListener('click', async () => {
+      locateBtn.addEventListener('click', async () => {
         locateBtn.disabled = true;
         locateStatus.textContent = i18n.t('near.locating');
         try {
           await Nearby.request();
           showLocated();
-          document.getElementById('search-section').scrollIntoView({ behavior:'smooth' });
+          document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
         } catch (err) {
           locateStatus.textContent = '';
           showToast(err.message, 'error');
@@ -280,16 +160,6 @@
           locateBtn.disabled = false;
         }
       });
-
-      // Load stats from API
-      try {
-        const pharmacies = await API.getPharmacies();
-        const allMeds  = pharmacies.flatMap(p => p.medicines);
-        const avail    = allMeds.filter(m => m.stock.isAvailable).length;
-        document.getElementById('stat-total').textContent  = allMeds.length;
-        document.getElementById('stat-avail').textContent  = avail;
-        document.getElementById('stat-pharms').textContent = pharmacies.length;
-      } catch (_) {}
     });
   </script>
 </body>

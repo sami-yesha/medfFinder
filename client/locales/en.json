@@ -4,7 +4,9 @@
     "medicines": "Medicines",
     "by_location": "By Location",
     "map": "Map",
-    "login": "Login"
+    "login": "Login",
+    "find": "Find medicine",
+    "how": "How it works"
   },
   "hero": {
     "title": "Find Your Medicine,\nFast & Easy 💊",
@@ -56,10 +58,13 @@
   },
   "map": {
     "title": "Pharmacy Map 🗺️",
-    "subtitle": "All pharmacies plotted — search by location above to filter markers"
+    "subtitle": "All pharmacies plotted — search by location above to filter markers",
+    "show_map": "Map",
+    "show_list": "List"
   },
   "footer": {
-    "tagline": "MedFinder — Helping you find medicines faster."
+    "tagline": "MedFinder — Helping you find medicines faster.",
+    "short": "Helping you find medicines faster."
   },
   "login": {
     "title": "Admin Login – MedFinder",
@@ -187,7 +192,8 @@
     "this_pharmacy": "This pharmacy",
     "other_pharmacies": "Compare at other pharmacies",
     "only_here": "Only this pharmacy lists this medicine so far.",
-    "disclaimer": "Prices and stock are set by each pharmacy and can change — call ahead to confirm."
+    "disclaimer": "Prices and stock are set by each pharmacy and can change — call ahead to confirm.",
+    "prices": "Compare {{count}} prices"
   },
   "scan": {
     "button": "Scan prescription",
@@ -208,5 +214,45 @@
     "show": "Show",
     "scan_another": "Scan another",
     "raw_text": "Text we read from the photo"
+  },
+  "home": {
+    "eyebrow": "Live stock from pharmacies near you",
+    "title": "Find your medicine <em>nearby</em> — in seconds.",
+    "subtitle": "See which pharmacy has it in stock, compare prices, and get directions. Or just scan your prescription.",
+    "scan": "Scan",
+    "popular": "Popular:",
+    "f_scan_title": "Scan a prescription",
+    "f_scan_text": "Read on your phone, never uploaded",
+    "f_near_title": "Nearest in stock",
+    "f_near_text": "Sorted by real distance",
+    "f_compare_title": "Compare prices",
+    "f_compare_text": "See who's cheapest",
+    "preview_title": "Prescription scanned",
+    "preview_sub": "3 medicines found",
+    "preview_nearest": "Nearest: 200 m away"
+  },
+  "stock": {
+    "in": "In stock",
+    "low": "Low stock",
+    "out": "Out of stock"
+  },
+  "results": {
+    "all": "All medicines",
+    "near_you": "Near you",
+    "for": "Results for “{{query}}”",
+    "count": "{{count}} results",
+    "count_one": "1 result"
+  },
+  "card": {
+    "details": "Details"
+  },
+  "how": {
+    "title": "How it works",
+    "s1_title": "Search or scan",
+    "s1_text": "Type a medicine name, or photograph your prescription and we'll read it for you.",
+    "s2_title": "See who has it",
+    "s2_text": "Pharmacies with it in stock come first, sorted by distance, with prices side by side.",
+    "s3_title": "Go or call ahead",
+    "s3_text": "Get directions in one tap, or call the pharmacy to confirm before you leave."
   }
 }

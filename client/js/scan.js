@@ -135,21 +135,21 @@ function renderScanResults(matches, allResults, text) {
     ? matches.map(m => {
         const s = summarizeAvailability(m.name, allResults);
         const stockLine = s.inStock
-          ? `<span class="badge badge-available">✓ ${i18n.t('scan.in_stock_at', { count: s.inStock })}</span>`
-          : `<span class="badge badge-unavailable">✗ ${i18n.t('compare.none_in_stock')}</span>`;
+          ? `<span class="ds-pill ds-pill-ok">${icon('check')}${i18n.t('scan.in_stock_at', { count: s.inStock })}</span>`
+          : `<span class="ds-pill ds-pill-bad">${icon('x')}${i18n.t('compare.none_in_stock')}</span>`;
         return `
           <div class="scan-match">
             <div class="scan-match-main">
-              <div class="scan-match-name">💊 ${escapeHtml(m.name)}</div>
+              <div class="scan-match-name">${icon('pill')}${escapeHtml(m.name)}</div>
               <div class="scan-match-meta">
                 ${stockLine}
-                ${s.cheapest ? `<span>💰 ${i18n.t('scan.from_price', { price: `${escapeHtml(s.cheapest.amount)} ${escapeHtml(s.cheapest.currency)}` })}</span>` : ''}
-                ${s.nearest != null ? `<span>📍 ${i18n.t('near.away', { distance: Nearby.formatDistance(s.nearest) })}</span>` : ''}
+                ${s.cheapest ? `<span>${icon('banknote')} ${i18n.t('scan.from_price', { price: `${escapeHtml(s.cheapest.amount)} ${escapeHtml(s.cheapest.currency)}` })}</span>` : ''}
+                ${s.nearest != null ? `<span>${icon('navigation')} ${i18n.t('near.away', { distance: Nearby.formatDistance(s.nearest) })}</span>` : ''}
               </div>
             </div>
             <div class="scan-match-actions">
-              <button class="btn-chip" data-scan-show="${escapeHtml(m.name)}">🔍 ${i18n.t('scan.show')}</button>
-              ${s.pharmacies > 1 ? `<button class="btn-chip btn-chip-primary" data-compare="${escapeHtml(m.name)}">⚖️ ${i18n.t('compare.button', { count: s.pharmacies })}</button>` : ''}
+              <button class="btn-chip" data-scan-show="${escapeHtml(m.name)}">${icon('search')}${i18n.t('scan.show')}</button>
+              ${s.pharmacies > 1 ? `<button class="btn-chip btn-chip-primary" data-compare="${escapeHtml(m.name)}">${icon('scale')}${i18n.t('compare.prices', { count: s.pharmacies })}</button>` : ''}
             </div>
           </div>`;
       }).join('')
@@ -212,13 +212,13 @@ function ensureScanModal() {
     <div class="compare-modal" role="dialog" aria-modal="true" aria-labelledby="scan-title">
       <div class="compare-modal-header">
         <h2 id="scan-title"></h2>
-        <button class="compare-close" aria-label="Close">✕</button>
+        <button class="compare-close" aria-label="Close">${icon('x')}</button>
       </div>
       <div id="scan-start">
         <p class="scan-intro"></p>
         <label class="scan-drop">
           <input type="file" id="scan-file" accept="image/*" capture="environment" hidden />
-          <span class="scan-drop-icon">📷</span>
+          <span class="scan-drop-icon">${icon('camera')}</span>
           <span class="scan-drop-text"></span>
         </label>
         <button type="button" class="scan-sample-btn" id="scan-sample"></button>
@@ -261,12 +261,7 @@ function ensureScanModal() {
     const showBtn = e.target.closest('[data-scan-show]');
     if (showBtn) {
       close();
-      const input = document.getElementById('search-input');
-      if (input) {
-        input.value = showBtn.dataset.scanShow;
-        input.dispatchEvent(new Event('input'));
-        document.getElementById('search-section')?.scrollIntoView({ behavior: 'smooth' });
-      }
+      searchFor(showBtn.dataset.scanShow);
     }
   });
   return overlay;
@@ -277,10 +272,10 @@ function translateScanModal(overlay) {
   overlay.querySelector('#scan-title').textContent        = i18n.t('scan.title');
   overlay.querySelector('.scan-intro').textContent        = i18n.t('scan.intro');
   overlay.querySelector('.scan-drop-text').textContent    = i18n.t('scan.choose_photo');
-  overlay.querySelector('#scan-sample').textContent       = `🧪 ${i18n.t('scan.try_sample')}`;
-  overlay.querySelector('.scan-privacy').textContent      = `🔒 ${i18n.t('scan.privacy')}`;
-  overlay.querySelector('#scan-again').textContent        = `📷 ${i18n.t('scan.scan_another')}`;
-  overlay.querySelector('.scan-medical').textContent      = `ℹ️ ${i18n.t('scan.medical_note')}`;
+  overlay.querySelector('#scan-sample').innerHTML         = `${icon('flask-conical')} ${i18n.t('scan.try_sample')}`;
+  overlay.querySelector('.scan-privacy').innerHTML        = `${icon('lock')} ${i18n.t('scan.privacy')}`;
+  overlay.querySelector('#scan-again').innerHTML          = `${icon('camera')} ${i18n.t('scan.scan_another')}`;
+  overlay.querySelector('.scan-medical').innerHTML        = `${icon('info')} ${i18n.t('scan.medical_note')}`;
 }
 
 function showScanStart() {
@@ -320,7 +315,7 @@ async function runScan(file) {
     results.innerHTML = renderScanResults(matchMedicines(text, knownNames), allResults, text);
   } catch (err) {
     document.getElementById('scan-progress').hidden = true;
-    results.innerHTML = `<div class="compare-summary compare-summary-empty">❌ ${escapeHtml(err.message)}</div>`;
+    results.innerHTML = `<div class="compare-summary compare-summary-empty">${icon('x')} ${escapeHtml(err.message)}</div>`;
   } finally {
     again.hidden = false;
   }
