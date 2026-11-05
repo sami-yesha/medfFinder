@@ -48,12 +48,10 @@
           </div>
         </div>
         <p id="hero-locate-status" class="ds-locate-status" aria-live="polite"></p>
-        <div class="ds-popular">
+        <!-- Filled from the medicines in the database (see renderPopular in search.js) -->
+        <div class="ds-popular" id="popular" hidden>
           <span data-i18n="home.popular">Popular:</span>
-          <button type="button" data-popular="Paracetamol">Paracetamol</button>
-          <button type="button" data-popular="Amoxicillin">Amoxicillin</button>
-          <button type="button" data-popular="Metformin">Metformin</button>
-          <button type="button" data-popular="Omeprazole">Omeprazole</button>
+          <span id="popular-list" class="ds-popular-list"></span>
         </div>
 
         <div class="ds-features">

@@ -628,3 +628,5 @@ body.ds-auth {
 .ds-page .toast-icon { display: grid; place-items: center; }
 .ds-page .toast-success .toast-icon { color: var(--ok); }
 .ds-page .toast-error .toast-icon { color: var(--bad); }
+.ds-popular[hidden] { display: none; }
+.ds-popular-list { display: contents; }

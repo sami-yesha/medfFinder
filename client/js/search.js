@@ -14,6 +14,9 @@ let inStockOnly  = false;
 let nameCounts   = {};            // normalized medicine name → pharmacies listing it
 let cheapestIds  = new Set();     // medicine _ids that are the cheapest in-stock offer for their name
 let searchSeq    = 0;             // ignores responses from searches that were superseded
+let popularShown = false;         // popular searches are built once, from the first full listing
+
+const POPULAR_COUNT = 4;
 
 // ── Card Template ─────────────────────────────────────────────
 function stockPill(medicine) {
@@ -130,6 +133,11 @@ function renderCards(results) {
     .filter(([key]) => nameCounts[key] > 1)
     .map(([, med]) => med._id));
 
+  if (!popularShown && !lastQuery) {
+    popularShown = true;
+    renderPopular(results);
+  }
+
   results = applySortAndFilter(results);
   updateResultsHeader(results.length);
   if (typeof updateResultsMap === 'function') updateResultsMap(results, { showPrices: !!lastQuery });
@@ -161,6 +169,35 @@ async function handleSearch(query) {
       grid.innerHTML = `<div class="ds-empty ds-empty-error"><span class="ds-empty-icon">${icon('x')}</span><p>${escapeHtml(err.message)}</p></div>`;
     }
   }
+}
+
+/**
+ * "Popular:" shortcuts from the medicines actually in the database —
+ * the names stocked by the most pharmacies — so every shortcut leads to results.
+ */
+function renderPopular(results) {
+  const box  = document.getElementById('popular');
+  const list = document.getElementById('popular-list');
+  if (!box || !list) return;
+
+  const byName = new Map();
+  results.forEach(r => {
+    const key = normalizeName(r.medicine.name);
+    const entry = byName.get(key) || { name: r.medicine.name.trim(), pharmacies: 0, inStock: 0 };
+    entry.pharmacies++;
+    if (r.medicine.stock.isAvailable) entry.inStock++;
+    byName.set(key, entry);
+  });
+
+  const top = [...byName.values()]
+    .filter(e => e.inStock > 0)
+    .sort((a, b) => (b.pharmacies - a.pharmacies) || (b.inStock - a.inStock) || a.name.localeCompare(b.name))
+    .slice(0, POPULAR_COUNT);
+
+  // Show names capitalized ("paracetamol" → "Paracetamol"); search is case-insensitive anyway
+  const label = name => name.charAt(0).toUpperCase() + name.slice(1);
+  list.innerHTML = top.map(e => `<button type="button" data-popular="${escapeHtml(e.name)}">${escapeHtml(label(e.name))}</button>`).join('');
+  box.hidden = top.length === 0;
 }
 
 /** Put a query in the search box and run it (used by popular chips and the scan modal) */
@@ -198,8 +235,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  document.querySelectorAll('[data-popular]').forEach(btn => {
-    btn.addEventListener('click', () => searchFor(btn.dataset.popular));
+  document.getElementById('popular-list')?.addEventListener('click', e => {
+    const btn = e.target.closest('[data-popular]');
+    if (btn) searchFor(btn.dataset.popular);
   });
 
   // Sort / filter chips
