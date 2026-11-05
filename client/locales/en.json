@@ -154,5 +154,39 @@
     "error": "Something went wrong",
     "details": "Details",
     "view_map": "View on Map"
+  },
+  "near": {
+    "use_location": "Use my location",
+    "near_me": "Near me",
+    "locating": "Finding your location…",
+    "located": "Showing medicines nearest to you",
+    "denied": "Couldn't get your location. Allow location access, or search by area below.",
+    "unsupported": "Your browser doesn't support location.",
+    "away": "{{distance}} away",
+    "distance": "Distance",
+    "you_are_here": "You are here",
+    "directions": "Directions",
+    "call": "Call",
+    "nearest_first": "{{count}} pharmacies, nearest first"
+  },
+  "sort": {
+    "label": "Sort:",
+    "recommended": "Recommended",
+    "nearest": "Nearest",
+    "cheapest": "Cheapest",
+    "in_stock_only": "In stock only"
+  },
+  "compare": {
+    "button": "Compare ({{count}})",
+    "title": "{{name}} — price comparison",
+    "summary": "Cheapest in stock: {{price}} at {{pharmacy}}",
+    "save": "Save up to {{amount}} by choosing the cheapest",
+    "none_in_stock": "Out of stock everywhere right now.",
+    "cheapest": "Cheapest",
+    "nearest": "Nearest",
+    "this_pharmacy": "This pharmacy",
+    "other_pharmacies": "Compare at other pharmacies",
+    "only_here": "Only this pharmacy lists this medicine so far.",
+    "disclaimer": "Prices and stock are set by each pharmacy and can change — call ahead to confirm."
   }
 }

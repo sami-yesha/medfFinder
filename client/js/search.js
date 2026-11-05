@@ -3,6 +3,12 @@
  * Fetches medicine results from the backend API and renders cards.
  */
 
+// ── State ─────────────────────────────────────────────────────
+let lastResults = [];          // Raw results from the last search
+let sortMode    = 'recommended'; // 'recommended' | 'nearest' | 'cheapest'
+let inStockOnly = false;
+let nameCounts  = {};          // normalized medicine name → pharmacies listing it
+
 // ── Card Template ─────────────────────────────────────────────
 function createMedicineCard(result) {
   const { pharmacy, medicine } = result;
@@ -10,6 +16,7 @@ function createMedicineCard(result) {
   const badgeCls  = avail ? 'badge-available' : 'badge-unavailable';
   const badgeTxt  = avail ? `✓ ${i18n.t('search.available')}` : `✗ ${i18n.t('search.out_of_stock')}`;
   const detailUrl = `/pages/details?pharmacyId=${pharmacy._id}&medicineId=${medicine._id}`;
+  const compareCount = nameCounts[normalizeName(medicine.name)] || 0;
 
   return `
     <div class="card" role="listitem">
@@ -17,6 +24,7 @@ function createMedicineCard(result) {
         <h3 class="card-title">${escapeHtml(medicine.name)}</h3>
         <span class="badge ${badgeCls}">${badgeTxt}</span>
       </div>
+      ${Nearby.distanceBadge(pharmacy.location)}
       <p class="card-desc">${escapeHtml(medicine.description)}</p>
       <div class="card-info">
         <div class="info-item">
@@ -38,23 +46,65 @@ function createMedicineCard(result) {
           <span class="info-value" style="font-size:0.85rem;">${escapeHtml(pharmacy.address)}</span>
         </div>
       </div>
-      <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
+      <div class="card-actions">
+        ${Nearby.actionButtons(pharmacy)}
+        <button class="btn-chip" onclick="openPharmacyPopup('${pharmacy._id}')">🗺️ ${i18n.t('nav.map')}</button>
+      </div>
+      <div style="display:flex;gap:0.5rem;">
         <a href="${detailUrl}" class="btn-view" style="flex:1;text-align:center;">
           ${i18n.t('search.view_details')}
         </a>
-        <button class="btn-view"
-          onclick="openPharmacyPopup('${pharmacy._id}')"
-          style="flex:0 0 auto;padding:0.75rem 1rem;background:var(--bg-main);color:var(--text-muted);border-color:var(--border);"
-          title="View on map">📍</button>
+        ${compareCount > 1
+          ? `<button class="btn-view btn-compare" data-compare="${escapeHtml(medicine.name)}">⚖️ ${i18n.t('compare.button', { count: compareCount })}</button>`
+          : ''}
       </div>
     </div>
   `;
+}
+
+// ── Sort & Filter ─────────────────────────────────────────────
+function applySortAndFilter(results) {
+  let rows = inStockOnly ? results.filter(r => r.medicine.stock.isAvailable) : [...results];
+  const dist  = r => Nearby.distanceTo(r.pharmacy.location) ?? Infinity;
+  const avail = r => r.medicine.stock.isAvailable ? 1 : 0;
+
+  if (sortMode === 'nearest') {
+    rows.sort((a, b) => (avail(b) - avail(a)) || (dist(a) - dist(b)));
+  } else if (sortMode === 'cheapest') {
+    rows.sort((a, b) => (avail(b) - avail(a)) || (a.medicine.pricing.amount - b.medicine.pricing.amount) || (dist(a) - dist(b)));
+  }
+  return rows; // 'recommended' keeps the server order (in stock first)
+}
+
+function updateSortChips() {
+  document.querySelectorAll('.sort-chip[data-sort]').forEach(chip => {
+    chip.classList.toggle('active', chip.dataset.sort === sortMode);
+  });
+  document.getElementById('chip-in-stock')?.classList.toggle('active', inStockOnly);
+}
+
+async function setSortMode(mode) {
+  if (mode === 'nearest' && !Nearby.location) {
+    try { await Nearby.request(); }
+    catch (err) { return showToast(err.message, 'error'); }
+  }
+  sortMode = mode;
+  updateSortChips();
+  renderCards(lastResults);
 }
 
 // ── Render Grid ───────────────────────────────────────────────
 function renderCards(results) {
   const grid = document.getElementById('medicine-grid');
   if (!grid) return;
+
+  lastResults = results;
+  nameCounts = {};
+  results.forEach(r => {
+    const key = normalizeName(r.medicine.name);
+    nameCounts[key] = (nameCounts[key] || 0) + 1;
+  });
+  results = applySortAndFilter(results);
 
   if (!results.length) {
     grid.innerHTML = `
@@ -83,9 +133,13 @@ async function handleSearch(query) {
 
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
-  if (!document.getElementById('medicine-grid')) return;
+  const grid = document.getElementById('medicine-grid');
+  if (!grid) return;
+  if (Nearby.location) sortMode = 'nearest';
+  updateSortChips();
 
-  // Initial load — all medicines
+  // Initial load — all medicines (after translations, so card labels aren't raw keys)
+  await i18n.init();
   handleSearch('');
 
   // Bind search inputs (hero + section)
@@ -97,6 +151,29 @@ document.addEventListener('DOMContentLoaded', async () => {
       clearTimeout(debounce);
       debounce = setTimeout(() => handleSearch(e.target.value), 300);
     });
+  });
+
+  // Sort / filter chips
+  document.querySelectorAll('.sort-chip[data-sort]').forEach(chip => {
+    chip.addEventListener('click', () => setSortMode(chip.dataset.sort));
+  });
+  document.getElementById('chip-in-stock')?.addEventListener('click', () => {
+    inStockOnly = !inStockOnly;
+    updateSortChips();
+    renderCards(lastResults);
+  });
+
+  // Compare buttons (delegated so medicine names never go inside inline JS)
+  grid.addEventListener('click', e => {
+    const btn = e.target.closest('[data-compare]');
+    if (btn) openCompare(btn.dataset.compare);
+  });
+
+  // Location found or cleared → jump to nearest-first, or back to the default order
+  window.addEventListener('userLocationChanged', e => {
+    sortMode = e.detail ? 'nearest' : 'recommended';
+    updateSortChips();
+    renderCards(lastResults);
   });
 
   // Listen for language changes to re-render

@@ -154,5 +154,39 @@
     "error": "ችግር ተፈጥሯል",
     "details": "ዝርዝሮች",
     "view_map": "በካርታው ላይ ይመልከቱ"
+  },
+  "near": {
+    "use_location": "አካባቢዬን ተጠቀም",
+    "near_me": "በአቅራቢያዬ",
+    "locating": "አካባቢዎን በመፈለግ ላይ…",
+    "located": "ለእርስዎ ቅርብ የሆኑ መድኃኒቶች እየታዩ ነው",
+    "denied": "አካባቢዎን ማግኘት አልተቻለም። የአካባቢ ፍቃድ ይስጡ ወይም ከታች በአካባቢ ስም ይፈልጉ።",
+    "unsupported": "አሳሽዎ አካባቢ ማወቅን አይደግፍም።",
+    "away": "{{distance}} ርቀት",
+    "distance": "ርቀት",
+    "you_are_here": "እርስዎ እዚህ ነዎት",
+    "directions": "አቅጣጫ",
+    "call": "ደውል",
+    "nearest_first": "{{count}} ፋርማሲዎች፣ ቅርቡ በመጀመሪያ"
+  },
+  "sort": {
+    "label": "ደርድር፦",
+    "recommended": "የሚመከር",
+    "nearest": "ቅርብ",
+    "cheapest": "ርካሽ",
+    "in_stock_only": "ያሉት ብቻ"
+  },
+  "compare": {
+    "button": "አወዳድር ({{count}})",
+    "title": "{{name}} — የዋጋ ንጽጽር",
+    "summary": "ያለ ዝቅተኛ ዋጋ፦ {{price}} በ{{pharmacy}}",
+    "save": "ዝቅተኛውን በመምረጥ እስከ {{amount}} ይቆጥቡ",
+    "none_in_stock": "በአሁኑ ጊዜ በየትኛውም ፋርማሲ የለም።",
+    "cheapest": "ርካሽ",
+    "nearest": "ቅርብ",
+    "this_pharmacy": "ይህ ፋርማሲ",
+    "other_pharmacies": "በሌሎች ፋርማሲዎች አወዳድር",
+    "only_here": "እስካሁን ይህን መድኃኒት የመዘገበው ይህ ፋርማሲ ብቻ ነው።",
+    "disclaimer": "ዋጋና ክምችት በየፋርማሲው የሚወሰኑ ሲሆን ሊቀየሩ ይችላሉ — ከመሄድዎ በፊት ደውለው ያረጋግጡ።"
   }
 }

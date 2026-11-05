@@ -7,10 +7,20 @@ const i18n = {
   currentLang: localStorage.getItem('medfinder_lang') || 'en',
   translations: {},
 
+  ready: null,
+
   /**
-   * Initialize i18n: Load translations and apply to DOM
+   * Initialize i18n once; later calls return the same promise so any script can await it
    */
-  async init() {
+  init() {
+    if (!this.ready) this.ready = this._init();
+    return this.ready;
+  },
+
+  /**
+   * Load translations and apply to DOM
+   */
+  async _init() {
     await this.loadTranslations(this.currentLang);
     this.applyTranslations();
     this.updateLanguageSwitcherUI();

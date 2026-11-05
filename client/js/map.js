@@ -27,11 +27,14 @@ async function initPharmaciesMap() {
         ? available.map(m => `<li>💊 ${escapeHtml(m.name)} — <b>${escapeHtml(m.pricing.amount)} ${escapeHtml(m.pricing.currency)}</b></li>`).join('')
         : '<li style="color:#ef4444">No medicines in stock</li>';
 
-      const popup = `
+      // Built on open so the distance appears once the user shares their location
+      const popup = () => `
         <div style="font-family:Inter,sans-serif;min-width:200px;">
           <h4 style="margin:0 0 .4rem;color:#4f46e5;">🏥 ${escapeHtml(ph.name)}</h4>
           <p style="margin:0 0 .2rem;font-size:.85rem;color:#64748b;">📍 ${escapeHtml(ph.address)}</p>
-          <p style="margin:0 0 .7rem;font-size:.85rem;color:#64748b;">📞 ${escapeHtml(ph.phone)}</p>
+          <p style="margin:0 0 .4rem;font-size:.85rem;color:#64748b;">📞 ${escapeHtml(ph.phone)}</p>
+          ${Nearby.distanceTo(ph.location) != null ? `<p style="margin:0 0 .4rem;font-size:.85rem;font-weight:700;color:#2563eb;">📍 ${i18n.t('near.away', { distance: Nearby.formatDistance(Nearby.distanceTo(ph.location)) })}</p>` : ''}
+          <div style="display:flex;gap:.4rem;margin-bottom:.7rem;">${Nearby.actionButtons(ph)}</div>
           <hr style="border:none;border-top:1px solid #e2e8f0;margin-bottom:.7rem;">
           <p style="font-weight:600;font-size:.85rem;margin-bottom:.4rem;">Available Medicines:</p>
           <ul style="margin:0;padding:0;list-style:none;font-size:.85rem;">${medList}</ul>
@@ -43,6 +46,7 @@ async function initPharmaciesMap() {
 
       pharmacyMarkers[ph._id] = marker;
     });
+    Nearby.showOnMap(mapInstance);
   } catch (err) {
     console.error('Map load error:', err.message);
   }
@@ -69,6 +73,7 @@ function initDetailMap(lat, lng, pharmacyName) {
     attribution: '© OpenStreetMap contributors'
   }).addTo(m);
   L.marker([lat, lng]).bindPopup(`<b>🏥 ${escapeHtml(pharmacyName)}</b>`).addTo(m).openPopup();
+  Nearby.showOnMap(m);
 }
 
 // ── Admin Location Picker Map ─────────────────────────────────
@@ -120,3 +125,6 @@ function updateCoordDisplay(lat, lng) {
 document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('map')) initPharmaciesMap();
 });
+
+// Show the "You are here" dot as soon as the user shares their location
+window.addEventListener('userLocationChanged', () => Nearby.showOnMap(mapInstance));

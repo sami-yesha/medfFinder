@@ -23,10 +23,12 @@ function createPharmacyCard(ph, index) {
         </div>
         ${availBadge}
       </div>
+      ${Nearby.distanceBadge(ph.location)}
       <div class="loc-card-info">
         <span class="loc-info-item">📞 ${ph.phone ? escapeHtml(ph.phone) : i18n.t('location.phone_not_avail')}</span>
         <span class="loc-info-item">💊 ${ph.medicineCount === 1 ? i18n.t('location.one_med_listed') : i18n.t('location.meds_listed', { count: ph.medicineCount })}</span>
       </div>
+      <div class="card-actions" style="margin-bottom:.75rem;">${Nearby.actionButtons(ph)}</div>
       <div class="loc-card-actions">
         <button
           class="loc-btn-map"
@@ -48,8 +50,16 @@ function clearLocationMarkers() {
   locationMarkers = [];
 }
 
+/** Nearest first when the user's location is known; otherwise unchanged */
+function sortByDistance(pharmacies) {
+  if (!Nearby.location) return pharmacies;
+  const dist = ph => Nearby.distanceTo(ph.location) ?? Infinity;
+  return [...pharmacies].sort((a, b) => dist(a) - dist(b));
+}
+
 // ── Plot markers for location results ───────────────────────
-function plotLocationMarkers(pharmacies) {
+// nearMe: zoom to the user and the closest few pharmacies instead of all results
+function plotLocationMarkers(pharmacies, nearMe = false) {
   clearLocationMarkers();
   if (!locationMapRef) return;
 
@@ -79,6 +89,12 @@ function plotLocationMarkers(pharmacies) {
     locationMarkers.push(marker);
     bounds.push([ph.location.lat, ph.location.lng]);
   });
+
+  const userMarker = Nearby.showOnMap(locationMapRef);
+  if (nearMe && userMarker) {
+    bounds.splice(3);
+    bounds.push([Nearby.location.lat, Nearby.location.lng]);
+  }
 
   if (bounds.length > 0) {
     try {
@@ -134,7 +150,7 @@ async function handleLocationSearch(query) {
   grid.innerHTML = '';
 
   try {
-    const pharmacies = await API.searchPharmaciesByLocation(query);
+    const pharmacies = sortByDistance(await API.searchPharmaciesByLocation(query));
 
     // Wire map ref on first use (map.js must be loaded first)
     if (!locationMapRef && typeof mapInstance !== 'undefined') {
@@ -157,6 +173,34 @@ async function handleLocationSearch(query) {
     if (spinner) spinner.style.display = 'none';
   }
 }
+
+// ── "Near me": every pharmacy, nearest first ────────────────
+async function handleNearMe() {
+  const grid    = document.getElementById('location-grid');
+  const count   = document.getElementById('location-count');
+  const spinner = document.getElementById('location-spinner');
+  const btn     = document.getElementById('loc-near-btn');
+  if (!grid) return;
+
+  if (btn) { btn.disabled = true; btn.textContent = `⏳ ${i18n.t('near.locating')}`; }
+  try {
+    await Nearby.request();
+    if (spinner) spinner.style.display = 'block';
+    const pharmacies = sortByDistance(await API.searchPharmaciesByLocation(''));
+    if (!locationMapRef && typeof mapInstance !== 'undefined') locationMapRef = mapInstance;
+
+    renderLocationCards(pharmacies);
+    if (count && pharmacies.length) count.textContent = i18n.t('near.nearest_first', { count: pharmacies.length });
+    plotLocationMarkers(pharmacies, true);
+    document.getElementById('loc-clear-btn').style.display = '';
+  } catch (err) {
+    showToast(err.message, 'error');
+  } finally {
+    if (spinner) spinner.style.display = 'none';
+    if (btn) { btn.disabled = false; btn.textContent = `📍 ${i18n.t('near.near_me')}`; }
+  }
+}
+window.handleNearMe = handleNearMe;
 
 // ── Init ────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -189,6 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   searchBtn.addEventListener('click', doSearch);
+  document.getElementById('loc-near-btn')?.addEventListener('click', handleNearMe);
   searchInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') { clearTimeout(debounceTimer); doSearch(); }
   });
