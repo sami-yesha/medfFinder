@@ -605,3 +605,48 @@ label {
     .compare-row { flex-direction: column; }
     .compare-price-col { flex-direction: row; align-items: center; justify-content: space-between; }
 }
+
+/* --- Prescription scan --- */
+.compare-modal [hidden] { display: none !important; }
+.hero-scan-btn { background: #fff; color: var(--primary); border-color: #fff; }
+.hero-scan-btn:hover:not(:disabled) { background: #eef2ff; }
+.btn-chip-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+.btn-chip-primary:hover { background: var(--primary-hover); color: #fff; }
+.scan-intro { color: var(--text-muted); margin-bottom: 1rem; font-size: .95rem; }
+.scan-drop {
+    display: flex; flex-direction: column; align-items: center; gap: .5rem;
+    padding: 2rem 1rem; border: 2px dashed var(--primary); border-radius: 1rem; cursor: pointer;
+    background: color-mix(in srgb, var(--primary) 6%, transparent); text-align: center;
+    transition: var(--transition);
+}
+.scan-drop:hover { background: color-mix(in srgb, var(--primary) 12%, transparent); }
+.scan-drop-icon { font-size: 2.5rem; }
+.scan-drop-text { font-weight: 700; color: var(--primary); }
+.scan-sample-btn, .scan-again-btn {
+    display: block; width: 100%; margin-top: .75rem; padding: .75rem; border-radius: .75rem;
+    border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main);
+    font-weight: 600; cursor: pointer; transition: var(--transition);
+}
+.scan-sample-btn:hover, .scan-again-btn:hover { border-color: var(--primary); color: var(--primary); }
+.scan-preview {
+    display: block; width: 100%; max-height: 220px; object-fit: contain; margin-bottom: 1rem;
+    border-radius: .75rem; border: 1px solid var(--border); background: var(--bg-main);
+}
+.scan-progress { margin-bottom: 1rem; }
+.scan-progress-label { font-size: .9rem; font-weight: 600; color: var(--text-muted); margin-bottom: .4rem; }
+.scan-progress-track { height: .5rem; border-radius: 99px; background: var(--border); overflow: hidden; }
+.scan-progress-bar { height: 100%; width: 0; background: linear-gradient(90deg, var(--primary), #6366f1); transition: width .3s ease; }
+.scan-matches { display: flex; flex-direction: column; gap: .75rem; }
+.scan-match {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .75rem;
+    padding: 1rem; border: 1px solid var(--border); border-radius: .875rem; background: var(--bg-main);
+}
+.scan-match-name { font-weight: 800; font-size: 1.05rem; margin-bottom: .35rem; }
+.scan-match-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; font-size: .82rem; color: var(--text-muted); }
+.scan-match-actions { display: flex; flex-wrap: wrap; gap: .4rem; }
+.scan-raw { margin-top: 1rem; font-size: .85rem; color: var(--text-muted); }
+.scan-raw summary { cursor: pointer; font-weight: 600; }
+.scan-raw pre {
+    margin-top: .5rem; padding: .75rem; border-radius: .5rem; background: var(--bg-main);
+    white-space: pre-wrap; word-break: break-word; font-size: .8rem; max-height: 180px; overflow-y: auto;
+}

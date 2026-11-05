@@ -188,5 +188,25 @@
     "other_pharmacies": "Compare at other pharmacies",
     "only_here": "Only this pharmacy lists this medicine so far.",
     "disclaimer": "Prices and stock are set by each pharmacy and can change — call ahead to confirm."
+  },
+  "scan": {
+    "button": "Scan prescription",
+    "title": "Scan a prescription",
+    "intro": "Take a photo of a printed prescription. We'll read the medicine names and show where each one is available.",
+    "choose_photo": "Take a photo or choose an image",
+    "try_sample": "Try a sample prescription",
+    "privacy": "Your photo is read on your device and is never uploaded.",
+    "medical_note": "MedFinder only helps you find medicines. Always take them exactly as your doctor prescribed.",
+    "loading_reader": "Loading the text reader…",
+    "reading": "Reading the prescription…",
+    "load_failed": "Couldn't load the text reader. Check your internet connection and try again.",
+    "bad_image": "That file couldn't be opened as an image.",
+    "found": "Found {{count}} medicine(s) from our database",
+    "none_found": "No known medicines found. Try a clearer, well-lit photo, or type the name in the search box.",
+    "in_stock_at": "In stock at {{count}}",
+    "from_price": "from {{price}}",
+    "show": "Show",
+    "scan_another": "Scan another",
+    "raw_text": "Text we read from the photo"
   }
 }

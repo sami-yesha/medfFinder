@@ -96,7 +96,11 @@ function ensureCompareModal() {
     </div>`;
   document.body.appendChild(overlay);
 
-  const close = () => { overlay.style.display = 'none'; document.body.style.overflow = ''; };
+  const close = () => {
+    overlay.style.display = 'none';
+    // Keep the page locked if another modal (scan) is still open underneath
+    if (![...document.querySelectorAll('.compare-overlay')].some(o => o.style.display === 'flex')) document.body.style.overflow = '';
+  };
   overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
   overlay.querySelector('.compare-close').addEventListener('click', close);
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && overlay.style.display === 'flex') close(); });
@@ -108,6 +112,7 @@ async function openCompare(medicineName) {
   const body = overlay.querySelector('#compare-body');
   overlay.querySelector('#compare-title').textContent = i18n.t('compare.title', { name: medicineName });
   body.innerHTML = `<p class="compare-loading">⏳ ${i18n.t('search.searching')}</p>`;
+  document.body.appendChild(overlay); // move to front, e.g. when opened from the scan results
   overlay.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 

@@ -147,6 +147,7 @@
         <input type="search" class="search-bar" id="hero-search" placeholder="Search Paracetamol, Amoxicillin..." data-i18n="hero.search_placeholder" autocomplete="off" aria-label="Search medicines" />
       </div>
       <div class="hero-locate-row">
+        <button id="hero-scan-btn" class="hero-locate-btn hero-scan-btn" type="button" onclick="openScan()">📷 <span data-i18n="scan.button">Scan prescription</span></button>
         <button id="hero-locate-btn" class="hero-locate-btn" type="button">📍 <span data-i18n="near.use_location">Use my location</span></button>
         <span id="hero-locate-status" class="hero-locate-status" aria-live="polite"></span>
       </div>
@@ -241,6 +242,7 @@
   <script src="/js/app.js"></script>
   <script src="/js/nearby.js"></script>
   <script src="/js/compare.js"></script>
+  <script src="/js/scan.js"></script>
   <script src="/js/search.js"></script>
   <script src="/js/map.js"></script>
   <script src="/js/locationSearch.js"></script>

@@ -7,6 +7,7 @@ MedFinder is a modern, full-stack web application designed to help users search 
 - **Medicine search** across every pharmacy, with stock and price
 - **Near me** — share your location to sort results nearest first, see "1.2 km away" on every card, and list all pharmacies by distance
 - **Price comparison** — compare one medicine's price at every pharmacy that lists it; cheapest and nearest are highlighted, with how much you save
+- **Scan a prescription** — photograph a printed prescription; the medicine names are read on the device with Tesseract.js (the photo is never uploaded), matched against the database even with OCR typos, and shown with stock, lowest price and a Compare button. A built-in sample prescription makes it easy to demo
 - **Directions & Call** — one tap opens Google Maps directions or dials the pharmacy
 - **Sort & filter** — Recommended / Nearest / Cheapest, plus "In stock only"
 - **Map** of all pharmacies with a "You are here" marker
@@ -14,6 +15,7 @@ MedFinder is a modern, full-stack web application designed to help users search 
 - **Admin portal** for managing pharmacies and stock
 
 > Location needs HTTPS (or `localhost`) — browsers block it on plain `http://` sites.
+> Prescription scanning downloads its text reader (~10 MB, cached afterwards) the first time it's used, so it needs internet on first use.
 
 ## 🚀 Tech Stack
 
