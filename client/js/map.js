@@ -116,8 +116,9 @@ function initLocationPickerMap(initLat, initLng) {
 function updateCoordDisplay(lat, lng) {
   const el = document.getElementById('coord-display');
   if (el) {
-    el.textContent = `📍 Selected: ${Number(lat).toFixed(5)}, ${Number(lng).toFixed(5)}`;
-    el.style.color = 'var(--secondary)';
+    const coords = `${Number(lat).toFixed(5)}, ${Number(lng).toFixed(5)}`;
+    el.innerHTML = `${typeof icon === 'function' ? icon('map-pin') : '📍'} ${i18n.t('admin.selected_loc', { coords })}`;
+    el.classList.add('is-set');
   }
 }
 

@@ -42,10 +42,12 @@ function escapeHtml(value) {
 function showToast(message, type = 'success') {
   const container = document.getElementById('notifications');
   if (!container) return;
-  const icons = { success: '✅', error: '❌', warning: '⚠️' };
+  const icons = typeof icon === 'function'
+    ? { success: icon('circle-check'), error: icon('circle-x'), warning: icon('triangle-alert') }
+    : { success: '✅', error: '❌', warning: '⚠️' };
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
-  toast.innerHTML = `<span>${icons[type] || '💬'}</span><span>${escapeHtml(message)}</span>`;
+  toast.innerHTML = `<span class="toast-icon">${icons[type] || icons.success}</span><span>${escapeHtml(message)}</span>`;
   container.appendChild(toast);
   setTimeout(() => {
     toast.style.opacity = '0';

@@ -11,12 +11,24 @@ let editingPharmacyId = null;  // ID when editing a pharmacy
 let editingMedicineId = null;  // ID when editing a medicine
 let pickerMap = null;          // Leaflet location picker instance
 
+const LOW_STOCK_THRESHOLD = 10;
+
+/** Full-width table row for loading / empty / error messages */
+const tableMessage = (iconName, text, cls = '') =>
+  `<tr class="table-message ${cls}"><td colspan="5"><span class="ds-empty-icon">${icon(iconName)}</span><p>${text}</p></td></tr>`;
+
+function stockPill(m) {
+  if (!m.stock.isAvailable) return `<span class="ds-pill ds-pill-bad">${icon('x')}${i18n.t('stock.out')}</span>`;
+  if (m.stock.quantity <= LOW_STOCK_THRESHOLD) return `<span class="ds-pill ds-pill-warn">${icon('triangle-alert')}${i18n.t('stock.low')}</span>`;
+  return `<span class="ds-pill ds-pill-ok">${icon('check')}${i18n.t('stock.in')}</span>`;
+}
+
 // ══ PHARMACY SECTION ═════════════════════════════════════════
 
 async function loadPharmacies() {
   const tbody = document.getElementById('pharmacy-tbody');
   if (!tbody) return;
-  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted);">${i18n.t('admin.loading')}</td></tr>`;
+  tbody.innerHTML = tableMessage('loader-circle', i18n.t('admin.loading'), 'is-loading');
 
   try {
     const pharmacies = await API.getPharmacies();
@@ -24,32 +36,26 @@ async function loadPharmacies() {
     updateStats(pharmacies);
 
     if (!pharmacies.length) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:3rem;color:var(--text-muted);">
-        <div style="font-size:2rem;margin-bottom:.5rem;">🏥</div>
-        <p>${i18n.t('admin.no_pharms')}</p>
-      </td></tr>`;
+      tbody.innerHTML = tableMessage('store', i18n.t('admin.no_pharms'));
       return;
     }
 
     tbody.innerHTML = pharmacies.map(ph => `
       <tr>
         <td data-label="${i18n.t('admin.name')}"><strong>${escapeHtml(ph.name)}</strong></td>
-        <td data-label="${i18n.t('admin.address')}" style="font-size:.85rem;color:var(--text-muted);">${escapeHtml(ph.address)}</td>
+        <td data-label="${i18n.t('admin.address')}" class="cell-muted">${escapeHtml(ph.address || '—')}</td>
         <td data-label="${i18n.t('admin.phone')}">${escapeHtml(ph.phone || '—')}</td>
-        <td data-label="${i18n.t('admin.medicines')}"><span class="badge badge-available">${ph.medicines.length} ${i18n.t('admin.medicines')}</span></td>
-        <td data-label="${i18n.t('admin.actions')}">
+        <td data-label="${i18n.t('admin.medicines')}"><span class="ds-pill ds-pill-brand">${icon('pill')}${ph.medicines.length}</span></td>
+        <td data-label="${i18n.t('admin.actions')}" class="col-actions">
           <div class="actions">
-            <button class="btn-action btn-edit"   onclick="openPharmacyModal('${ph._id}')" title="${i18n.t('admin.edit')}">✏️</button>
-            <button class="btn-action"
-              onclick="openMedicinesPanel('${ph._id}')"
-              style="color:var(--primary);border-color:var(--primary);"
-              title="${i18n.t('admin.manage_meds')}">💊</button>
-            <button class="btn-action btn-delete" onclick="handleDeletePharmacy('${ph._id}')" title="${i18n.t('admin.delete')}">🗑️</button>
+            <button class="ds-btn ds-btn-soft ds-btn-sm" onclick="openMedicinesPanel('${ph._id}')">${icon('pill')}${i18n.t('admin.manage_meds')}</button>
+            <button class="ds-btn ds-btn-ghost ds-btn-sm ds-btn-icon" onclick="openPharmacyModal('${ph._id}')" title="${i18n.t('admin.edit')}" aria-label="${i18n.t('admin.edit')}">${icon('pencil')}</button>
+            <button class="ds-btn ds-btn-ghost ds-btn-sm ds-btn-icon btn-danger" onclick="handleDeletePharmacy('${ph._id}')" title="${i18n.t('admin.delete')}" aria-label="${i18n.t('admin.delete')}">${icon('trash-2')}</button>
           </div>
         </td>
       </tr>`).join('');
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--error);">❌ ${escapeHtml(err.message)}</td></tr>`;
+    tbody.innerHTML = tableMessage('circle-x', escapeHtml(err.message), 'is-error');
   }
 }
 
@@ -71,6 +77,9 @@ async function openPharmacyModal(id = null) {
   document.getElementById('ph-phone').value   = '';
   document.getElementById('ph-lat').value     = '';
   document.getElementById('ph-lng').value     = '';
+  const coordEl = document.getElementById('coord-display');
+  coordEl.textContent = i18n.t('admin.click_map');   // don't show the previous pharmacy's pin
+  coordEl.classList.remove('is-set');
 
   let initLat = null, initLng = null;
   if (id) {
@@ -115,10 +124,10 @@ async function handlePharmacySubmit(e) {
   try {
     if (editingPharmacyId) {
       await API.updatePharmacy(editingPharmacyId, data);
-      showToast(`"${data.name}" updated! ✅`);
+      showToast(`"${data.name}" updated!`);
     } else {
       await API.createPharmacy(data);
-      showToast(`"${data.name}" created! ✅`);
+      showToast(`"${data.name}" created!`);
     }
     closePharmacyModal();
     loadPharmacies();
@@ -160,25 +169,20 @@ function renderMedicinesTable(medicines) {
   if (!tbody) return;
 
   if (!medicines.length) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:3rem;color:var(--text-muted);">
-      <div style="font-size:2rem;margin-bottom:.5rem;">💊</div>
-      <p>${i18n.t('admin.no_meds')}</p>
-    </td></tr>`;
+    tbody.innerHTML = tableMessage('pill', i18n.t('admin.no_meds'));
     return;
   }
 
   tbody.innerHTML = medicines.map(m => `
     <tr>
-      <td data-label="${i18n.t('admin.medicines')}"><strong>${escapeHtml(m.name)}</strong><br><small style="color:var(--text-muted);">${escapeHtml(m.description)}</small></td>
-      <td data-label="${i18n.t('admin.status')}"><span class="badge ${m.stock.isAvailable ? 'badge-available' : 'badge-unavailable'}">
-        ${m.stock.isAvailable ? '✓ ' + i18n.t('search.available') : '✗ ' + i18n.t('search.out_of_stock')}
-      </span></td>
-      <td data-label="${i18n.t('admin.qty')}">${m.stock.quantity}</td>
+      <td data-label="${i18n.t('admin.medicines')}"><strong>${escapeHtml(m.name)}</strong>${m.description ? `<small class="cell-sub">${escapeHtml(m.description)}</small>` : ''}</td>
+      <td data-label="${i18n.t('admin.status')}">${stockPill(m)}</td>
+      <td data-label="${i18n.t('admin.qty')}">${escapeHtml(m.stock.quantity)}</td>
       <td data-label="${i18n.t('admin.price')}"><strong>${escapeHtml(m.pricing.amount)} ${escapeHtml(m.pricing.currency)}</strong></td>
-      <td data-label="${i18n.t('admin.actions')}">
+      <td data-label="${i18n.t('admin.actions')}" class="col-actions">
         <div class="actions">
-          <button class="btn-action btn-edit"   onclick="openMedicineModal('${m._id}')" title="${i18n.t('admin.edit')}">✏️</button>
-          <button class="btn-action btn-delete" onclick="handleDeleteMedicine('${m._id}')" title="${i18n.t('admin.delete')}">🗑️</button>
+          <button class="ds-btn ds-btn-ghost ds-btn-sm ds-btn-icon" onclick="openMedicineModal('${m._id}')" title="${i18n.t('admin.edit')}" aria-label="${i18n.t('admin.edit')}">${icon('pencil')}</button>
+          <button class="ds-btn ds-btn-ghost ds-btn-sm ds-btn-icon btn-danger" onclick="handleDeleteMedicine('${m._id}')" title="${i18n.t('admin.delete')}" aria-label="${i18n.t('admin.delete')}">${icon('trash-2')}</button>
         </div>
       </td>
     </tr>`).join('');
@@ -228,10 +232,10 @@ async function handleMedicineSubmit(e) {
   try {
     if (editingMedicineId) {
       await API.updateMedicine(selectedPharmacy._id, editingMedicineId, data);
-      showToast(`"${data.name}" updated! ✅`);
+      showToast(`"${data.name}" updated!`);
     } else {
       await API.addMedicine(selectedPharmacy._id, data);
-      showToast(`"${data.name}" added! ✅`);
+      showToast(`"${data.name}" added!`);
     }
     closeMedicineModal();
     // Refresh medicines panel

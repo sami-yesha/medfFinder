@@ -4,65 +4,57 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Login – MedFinder</title>
+  <meta name="theme-color" content="#0f766e" />
   <link rel="stylesheet" href="/css/style.css" />
-  <style>
-    body { min-height:100vh; display:flex; flex-direction:column; background:linear-gradient(135deg,#0f172a,#1e293b); }
-    .login-wrapper { flex:1; display:flex; align-items:center; justify-content:center; padding:2rem; }
-    .login-card { background:var(--bg-card); border:1px solid var(--border); border-radius:1.5rem; padding:2.5rem; width:100%; max-width:420px; box-shadow:0 25px 50px -12px rgb(0 0 0/.4); }
-    @media (max-width: 480px) {
-      .login-card { padding: 1.5rem; border-radius: 1rem; }
-      .login-logo .icon { font-size: 2.5rem; }
-      .login-logo h1 { font-size: 1.5rem; }
-    }
-    .login-logo { text-align:center; margin-bottom:2rem; }
-    .login-logo .icon { font-size:3.5rem; display:block; margin-bottom:.5rem; }
-    .login-logo h1 { font-size:1.75rem; font-weight:800; color:var(--primary); }
-    .login-logo p { font-size:.9rem; color:var(--text-muted); margin-top:.25rem; }
-    .btn-submit { width:100%; background:var(--primary); color:white; border:none; border-radius:.75rem; padding:1rem; font-size:1rem; font-weight:700; cursor:pointer; transition:var(--transition); margin-top:.5rem; }
-    .btn-submit:hover { background:var(--primary-hover); transform:translateY(-1px); }
-    #login-error { display:none; background:#fee2e2; color:#991b1b; border-radius:.5rem; padding:.75rem 1rem; font-size:.9rem; margin-bottom:1rem; }
-  </style>
+  <link rel="stylesheet" href="/css/ds.css" />
 </head>
-<body>
+<body class="ds-page ds-auth">
   <div id="notifications"></div>
-  <nav class="navbar" style="background:rgba(15,23,42,.9);border-bottom-color:#334155;">
-    <div class="container nav-container">
-      <a href="/" class="logo">💊 MedFinder</a>
-      <div style="display:flex;gap:.75rem;align-items:center;">
-        <select id="language-switcher" aria-label="Select Language" onchange="i18n.switchLanguage(this.value)" style="background:#1e293b;color:white;border-color:#334155;padding:0.3rem 0.6rem;border-radius:0.5rem;font-size:0.85rem;">
+
+  <nav class="ds-nav">
+    <div class="ds-container ds-nav-inner">
+      <a href="/" class="ds-logo"><span class="ds-logo-mark"><i data-icon="pill"></i></span><span data-i18n="common.app_name">MedFinder</span></a>
+      <div class="ds-nav-end">
+        <select id="language-switcher" class="ds-select" aria-label="Select Language" onchange="i18n.switchLanguage(this.value)">
           <option value="en">English</option>
           <option value="am">አማርኛ</option>
         </select>
-        <button id="dark-mode-toggle" aria-label="Toggle dark mode" style="background:none;border:1px solid #334155;border-radius:.5rem;width:2.5rem;height:2.5rem;cursor:pointer;font-size:1rem;color:white;">🌙</button>
+        <button id="dark-mode-toggle" class="ds-btn ds-btn-ghost ds-btn-icon" aria-label="Toggle dark mode"></button>
       </div>
     </div>
   </nav>
 
-  <div class="login-wrapper">
-    <div class="login-card">
-      <div class="login-logo">
-        <span class="icon">💊</span>
-        <h1>MedFinder</h1>
-        <p data-i18n="login.portal">Admin / Pharmacist Portal</p>
+  <main class="ds-auth-wrap">
+    <div class="ds-auth-card">
+      <div class="ds-auth-head">
+        <span class="ds-tile ds-tile-lg"><i data-icon="shield-check"></i></span>
+        <h1 data-i18n="login.portal">Admin / Pharmacist Portal</h1>
+        <p data-i18n="login.subtitle">Sign in to manage pharmacies and stock.</p>
       </div>
-      <div id="login-error" data-i18n="login.invalid">❌ Invalid email or password.</div>
-      <form id="login-form" novalidate>
-        <div class="form-group">
-          <label for="email" data-i18n="login.email">Email Address</label>
-          <input type="email" id="email" class="form-control" placeholder="admin@medfinder.com" required autocomplete="email" />
-        </div>
-        <div class="form-group">
-          <label for="password" data-i18n="login.password">Password</label>
-          <div style="position:relative;">
-            <input type="password" id="password" class="form-control" placeholder="Enter your password" data-i18n="login.enter_pw" required autocomplete="current-password" />
-            <button type="button" id="toggle-pw" style="position:absolute;right:1rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;" aria-label="Toggle password">👁️</button>
-          </div>
-        </div>
-        <button type="submit" class="btn-submit" id="login-btn" data-i18n="login.sign_in">Sign In →</button>
-      </form>
-    </div>
-  </div>
 
+      <div id="login-error" class="ds-alert" role="alert" hidden></div>
+
+      <form id="login-form" novalidate>
+        <label class="ds-field">
+          <span data-i18n="login.email">Email Address</span>
+          <input type="email" id="email" class="ds-input" placeholder="admin@medfinder.com" required autocomplete="email" />
+        </label>
+        <label class="ds-field">
+          <span data-i18n="login.password">Password</span>
+          <span class="ds-input-wrap">
+            <input type="password" id="password" class="ds-input" placeholder="Enter your password" data-i18n="login.enter_pw" required autocomplete="current-password" />
+            <button type="button" id="toggle-pw" class="ds-input-btn" aria-label="Show password"><i data-icon="eye"></i></button>
+          </span>
+        </label>
+        <button type="submit" class="ds-btn ds-btn-primary ds-btn-block" id="login-btn"><span data-i18n="login.sign_in">Sign In</span></button>
+      </form>
+
+      <a href="/" class="ds-back ds-auth-back"><i data-icon="arrow-left"></i><span data-i18n="details.back_home">Back to Home</span></a>
+    </div>
+  </main>
+
+  <script src="/js/icons.js"></script>
+  <script>renderStaticIcons();</script>
   <script src="/js/i18n.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/app.js"></script>
@@ -71,29 +63,37 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
       await i18n.init();
-      // Update page title
       document.title = i18n.t('login.title');
     });
 
-    document.getElementById('toggle-pw').addEventListener('click', () => {
-      const pw = document.getElementById('password');
-      pw.type = pw.type === 'password' ? 'text' : 'password';
+    const pwInput = document.getElementById('password');
+    const pwBtn   = document.getElementById('toggle-pw');
+    pwBtn.addEventListener('click', () => {
+      const show = pwInput.type === 'password';
+      pwInput.type = show ? 'text' : 'password';
+      pwBtn.innerHTML = icon(show ? 'eye-off' : 'eye');
+      pwBtn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
     });
 
     document.getElementById('login-form').addEventListener('submit', async e => {
       e.preventDefault();
-      const email = document.getElementById('email').value.trim();
-      const pass  = document.getElementById('password').value;
-      const btn   = document.getElementById('login-btn');
-      btn.textContent = i18n.t('login.signing_in'); btn.disabled = true;
+      const email   = document.getElementById('email').value.trim();
+      const btn     = document.getElementById('login-btn');
+      const errorEl = document.getElementById('login-error');
+      errorEl.hidden = true;
+      btn.disabled = true;
+      btn.innerHTML = `${icon('loader-circle', 'ds-spin')}<span>${i18n.t('login.signing_in')}</span>`;
       try {
-        const { token, email: adminEmail } = await API.login(email, pass);
+        const { token, email: adminEmail } = await API.login(email, pwInput.value);
         sessionStorage.setItem('medfinder_admin', JSON.stringify({ email: adminEmail, token }));
         showToast(i18n.t('login.welcome'));
         setTimeout(() => { window.location.href = '/pages/admin'; }, 800);
       } catch (err) {
-        document.getElementById('login-error').style.display = 'block';
-        btn.textContent = i18n.t('login.sign_in'); btn.disabled = false;
+        // Wrong credentials get the translated message; anything else (e.g. login not configured) shows the server's reason
+        errorEl.innerHTML = `${icon('circle-x')}<span>${escapeHtml(/invalid/i.test(err.message) ? i18n.t('login.invalid') : err.message)}</span>`;
+        errorEl.hidden = false;
+        btn.disabled = false;
+        btn.innerHTML = `<span>${i18n.t('login.sign_in')}</span>`;
       }
     });
   </script>

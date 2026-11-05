@@ -76,7 +76,8 @@
     "sign_in": "ግባ →",
     "signing_in": "በመግባት ላይ...",
     "demo": "የሙከራ መለያዎች",
-    "welcome": "እንኳን ደህና መጡ! 👋"
+    "welcome": "እንኳን ደህና መጡ!",
+    "subtitle": "ፋርማሲዎችንና ክምችትን ለማስተዳደር ይግቡ።"
   },
   "details": {
     "title": "ዝርዝሮች – ሜድ ፋይንደር",
@@ -139,7 +140,7 @@
     "ph_name_placeholder": "ለምሳሌ ኤቢሲ ፋርማሲ",
     "ph_addr_placeholder": "አዲስ አበባ፣ ቦሌ",
     "loc_pin": "(ምልክት ለማድረግ ካርታውን ይጫኑ)",
-    "click_map": "📍 ቦታ ለመምረጥ ካርታውን ይጫኑ",
+    "click_map": "ቦታውን ለመምረጥ ካርታውን ይጫኑ",
     "save_pharm": "ፋርማሲን አስቀምጥ",
     "med_name_label": "የመድሃኒት ስም *",
     "med_desc_label": "መግለጫ",
@@ -154,7 +155,10 @@
     "title_edit_med": "መድሃኒትን አርም",
     "title_add_med": "መድሃኒት ጨምር",
     "confirm_del_ph": "\"{{name}}\" እና ሁሉንም መድሃኒቶቹን መሰረዝ ይፈልጋሉ?",
-    "confirm_del_med": "\"{{name}}\" መሰረዝ ይፈልጋሉ?"
+    "confirm_del_med": "\"{{name}}\" መሰረዝ ይፈልጋሉ?",
+    "map_loc": "አድራሻ በካርታ",
+    "med_name_placeholder": "ለምሳሌ፦ ፓራሴታሞል",
+    "selected_loc": "የተመረጠ ቦታ፦ {{coords}}"
   },
   "common": {
     "app_name": "ሜድ ፋይንደር",

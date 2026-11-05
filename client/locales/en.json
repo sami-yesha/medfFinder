@@ -76,7 +76,8 @@
     "sign_in": "Sign In →",
     "signing_in": "Signing in...",
     "demo": "Demo credentials",
-    "welcome": "Welcome back, Admin! 👋"
+    "welcome": "Welcome back!",
+    "subtitle": "Sign in to manage pharmacies and stock."
   },
   "details": {
     "title": "Details – MedFinder",
@@ -139,7 +140,7 @@
     "ph_name_placeholder": "e.g. ABC Pharmacy",
     "ph_addr_placeholder": "Addis Ababa, Bole",
     "loc_pin": "(click map to pin)",
-    "click_map": "📍 Click on the map to select location",
+    "click_map": "Click on the map to select the location",
     "save_pharm": "Save Pharmacy",
     "med_name_label": "Medicine Name *",
     "med_desc_label": "Description",
@@ -154,7 +155,10 @@
     "title_edit_med": "Edit Medicine",
     "title_add_med": "Add Medicine",
     "confirm_del_ph": "Delete \"{{name}}\" and ALL its medicines?",
-    "confirm_del_med": "Delete \"{{name}}\"?"
+    "confirm_del_med": "Delete \"{{name}}\"?",
+    "map_loc": "Location",
+    "med_name_placeholder": "e.g. Paracetamol",
+    "selected_loc": "Pinned at {{coords}}"
   },
   "common": {
     "app_name": "MedFinder",
