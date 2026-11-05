@@ -2,6 +2,7 @@
  * MedFinder - Pharmacy Controller
  * Handles all pharmacy CRUD and cross-pharmacy medicine search.
  */
+const mongoose = require('mongoose');
 const Pharmacy = require('../models/Pharmacy');
 
 // Treat user search text as a literal, not a regex pattern
@@ -30,6 +31,8 @@ const getAllPharmacies = async (req, res) => {
 // ── GET /api/pharmacies/:id ──────────────────────────────────
 const getPharmacyById = async (req, res) => {
   try {
+    // A malformed id (e.g. a mangled link) is "not found", not a server error
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(404).json({ message: 'Pharmacy not found' });
     const pharmacy = await Pharmacy.findById(req.params.id);
     if (!pharmacy) return res.status(404).json({ message: 'Pharmacy not found' });
     res.json(pharmacy);

@@ -34,7 +34,8 @@ const i18n = {
    */
   async loadTranslations(lang) {
     try {
-      const response = await fetch(`/locales/${lang}.json`);
+      // no-cache: always revalidate, so new strings show up right after a deploy (even on Back)
+      const response = await fetch(`/locales/${lang}.json`, { cache: 'no-cache' });
       if (!response.ok) throw new Error(`Could not load ${lang} translations`);
       this.translations = await response.json();
       this.currentLang = lang;

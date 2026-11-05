@@ -4,89 +4,65 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Details – MedFinder</title>
+  <meta name="theme-color" content="#0f766e" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="/css/style.css" />
-  <style>
-    .details-layout { display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-top:2rem; }
-    @media(max-width:768px){ .details-layout{ grid-template-columns:1fr; } }
-    .details-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:2rem; box-shadow:var(--shadow-sm); }
-    .med-hero { width:100%; height:190px; background:linear-gradient(135deg,#4f46e5,#6366f1); border-radius:.75rem; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; margin-bottom:1.5rem; }
-    .ph-hero  { width:100%; height:190px; background:linear-gradient(135deg,#0891b2,#0284c7); border-radius:.75rem; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; margin-bottom:1.5rem; }
-    .med-hero .icon, .ph-hero .icon { font-size:4rem; }
-    .details-title { font-size:1.75rem; font-weight:800; margin-bottom:.5rem; }
-    .detail-row { display:flex; align-items:flex-start; gap:1rem; padding:.875rem 0; border-bottom:1px solid var(--border); }
-    .detail-row:last-child { border-bottom:none; }
-    .detail-icon { width:2.25rem; height:2.25rem; background:var(--bg-main); border-radius:.5rem; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
-    .detail-label { font-size:.75rem; text-transform:uppercase; font-weight:600; color:var(--text-muted); letter-spacing:.05em; }
-    .detail-value { font-size:.95rem; font-weight:600; }
-    .price-display { font-size:2rem; font-weight:800; color:var(--primary); }
-    .btn-back { display:inline-flex; align-items:center; gap:.5rem; background:var(--bg-card); border:1px solid var(--border); border-radius:.75rem; padding:.65rem 1.25rem; font-weight:600; cursor:pointer; transition:var(--transition); color:var(--text-main); margin-bottom:1.5rem; text-decoration:none; }
-    .btn-back:hover { border-color:var(--primary); color:var(--primary); }
-    #detail-map { height:260px; border-radius:.5rem; }
-    .not-found { text-align:center; padding:5rem 2rem; color:var(--text-muted); }
-    /* Pharmacy medicines list */
-    .med-list { display:flex; flex-direction:column; gap:.75rem; margin-top:1rem; }
-    .med-list-item {
-      display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;
-      gap:.5rem; padding:.875rem 1rem; border-radius:.75rem;
-      background:var(--bg-main); border:1px solid var(--border);
-    }
-    .med-list-name { font-weight:700; font-size:.95rem; }
-    .med-list-meta { font-size:.82rem; color:var(--text-muted); margin-top:.1rem; }
-    .med-list-right { display:flex; align-items:center; gap:.75rem; flex-shrink:0; }
-    .med-list-price { font-weight:700; color:var(--primary); }
-  </style>
+  <link rel="stylesheet" href="/css/ds.css" />
 </head>
-<body>
+<body class="ds-page">
   <div id="notifications"></div>
 
-  <nav class="navbar" role="navigation">
-    <div class="container nav-container">
-      <a href="/" class="logo">💊 MedFinder</a>
-      <ul class="nav-links" id="nav-links">
-        <li><a href="/" class="nav-link" data-i18n="nav.home">Home</a></li>
-      </ul>
-      <div style="display:flex;gap:.75rem;align-items:center;">
-        <select id="language-switcher" aria-label="Select Language" onchange="i18n.switchLanguage(this.value)">
+  <nav class="ds-nav">
+    <div class="ds-container ds-nav-inner">
+      <a href="/" class="ds-logo"><span class="ds-logo-mark"><i data-icon="pill"></i></span><span data-i18n="common.app_name">MedFinder</span></a>
+      <div class="ds-nav-links">
+        <a href="/#results" data-i18n="nav.find">Find medicine</a>
+        <a href="/#how" data-i18n="nav.how">How it works</a>
+      </div>
+      <div class="ds-nav-end">
+        <select id="language-switcher" class="ds-select" aria-label="Select Language" onchange="i18n.switchLanguage(this.value)">
           <option value="en">English</option>
           <option value="am">አማርኛ</option>
         </select>
-        <button id="dark-mode-toggle" aria-label="Toggle dark mode" style="background:var(--bg-main);border:1px solid var(--border);border-radius:.5rem;width:2.5rem;height:2.5rem;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;">🌙</button>
-        <button id="hamburger" aria-label="Menu" style="background:none;border:none;font-size:1.5rem;cursor:pointer;display:none;">☰</button>
+        <button id="dark-mode-toggle" class="ds-btn ds-btn-ghost ds-btn-icon" aria-label="Toggle dark mode"></button>
       </div>
     </div>
   </nav>
 
-  <style>
-    @media (max-width: 768px) {
-      #hamburger { display: block !important; }
-      #nav-links { 
-        display: none; position: absolute; top: 4.5rem; left: 0; right: 0; 
-        background: var(--bg-card); border-bottom: 1px solid var(--border); 
-        padding: 1rem; flex-direction: column; gap: 1rem; z-index: 1000; 
-      }
-      #nav-links.nav-open { display: flex; }
-    }
-  </style>
-
-  <main>
-    <div class="container" style="padding-top:2rem;padding-bottom:4rem;">
-      <a href="/" class="btn-back" data-i18n="details.back_home">← Back to Home</a>
-      <div id="details-content"></div>
-    </div>
+  <main class="ds-container ds-details">
+    <a href="/" class="ds-back" id="back-link"><i data-icon="arrow-left"></i><span data-i18n="details.back_search">Back to search</span></a>
+    <div id="details-content"></div>
   </main>
 
+  <footer class="ds-footer">
+    <div class="ds-container ds-footer-inner">
+      <a href="/" class="ds-logo"><span class="ds-logo-mark"><i data-icon="pill"></i></span><span data-i18n="common.app_name">MedFinder</span></a>
+      <p data-i18n="footer.short">Helping you find medicines faster.</p>
+    </div>
+  </footer>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/js/icons.js"></script>
+  <script>renderStaticIcons();</script>
   <script src="/js/i18n.js"></script>
   <script src="/js/api.js"></script>
-  <script src="/js/icons.js"></script>
   <script src="/js/app.js"></script>
   <script src="/js/nearby.js"></script>
   <script src="/js/compare.js"></script>
-  <script src="/js/map.js"></script>
   <script>
+    const LOW_STOCK_THRESHOLD = 10;
+    let detailMap = null;
+
     document.addEventListener('DOMContentLoaded', async () => {
       await i18n.init();
+
+      // Coming from our own search page? Go back to it (keeps the user's search and scroll)
+      document.getElementById('back-link').addEventListener('click', e => {
+        if (document.referrer && new URL(document.referrer).origin === location.origin && history.length > 1) {
+          e.preventDefault();
+          history.back();
+        }
+      });
 
       const params     = new URLSearchParams(window.location.search);
       const pharmacyId = params.get('pharmacyId');
@@ -97,27 +73,15 @@
 
       try {
         const pharmacy = await API.getPharmacyById(pharmacyId);
+        const medicine = medicineId ? pharmacy.medicines.find(m => m._id === medicineId) : null;
+        if (medicineId && !medicine) return renderNotFound(container, 'Medicine not found in this pharmacy.');
 
-        if (medicineId) {
-          // Medicine detail view (from medicine search cards)
-          const medicine = pharmacy.medicines.find(m => m._id === medicineId);
-          if (!medicine) return renderNotFound(container, 'Medicine not found in this pharmacy.');
-          renderMedicineDetails(container, pharmacy, medicine);
-        } else {
-          // Pharmacy profile view (from location search "View Details")
-          renderPharmacyProfile(container, pharmacy);
-        }
-
-        // Re-render on language change
-        window.addEventListener('languageChanged', () => {
-           if (medicineId) {
-             const medicine = pharmacy.medicines.find(m => m._id === medicineId);
-             renderMedicineDetails(container, pharmacy, medicine);
-           } else {
-             renderPharmacyProfile(container, pharmacy);
-           }
-        });
-
+        const render = () => medicine
+          ? renderMedicineDetails(container, pharmacy, medicine)   // from a medicine card
+          : renderPharmacyProfile(container, pharmacy);           // from "see all medicines here"
+        render();
+        window.addEventListener('languageChanged', render);
+        window.addEventListener('userLocationChanged', render);
       } catch (err) {
         renderNotFound(container, err.message);
       }
@@ -125,86 +89,110 @@
 
     function renderNotFound(container, reason) {
       container.innerHTML = `
-        <div class="not-found">
-          <div style="font-size:4rem;margin-bottom:1rem;">😕</div>
-          <h1 style="font-size:1.75rem;color:var(--text-main);margin-bottom:.5rem;" data-i18n="details.not_found">${i18n.t('details.not_found')}</h1>
+        <div class="ds-empty">
+          <span class="ds-empty-icon">${icon('search-x')}</span>
+          <h3>${i18n.t('details.not_found')}</h3>
           <p>${escapeHtml(reason)}</p>
-          <a href="/" style="display:inline-block;margin-top:1.5rem;background:var(--primary);color:white;padding:.75rem 2rem;border-radius:.75rem;font-weight:600;" data-i18n="details.back_home">${i18n.t('details.back_home')}</a>
+          <a href="/" class="ds-btn ds-btn-primary" style="margin-top:1.25rem;">${icon('arrow-left')}${i18n.t('details.back_home')}</a>
         </div>`;
     }
 
-    // ── MEDICINE DETAIL VIEW (pharmacyId + medicineId) ──────────
+    function stockPill(med) {
+      if (!med.stock.isAvailable) return `<span class="ds-pill ds-pill-bad">${icon('x')}${i18n.t('stock.out')}</span>`;
+      if (med.stock.quantity <= LOW_STOCK_THRESHOLD) return `<span class="ds-pill ds-pill-warn">${icon('triangle-alert')}${i18n.t('stock.low')}</span>`;
+      return `<span class="ds-pill ds-pill-ok">${icon('check')}${i18n.t('stock.in')}</span>`;
+    }
+
+    /** Pharmacy name, address, distance, phone + Directions / Call */
+    function pharmacyBlock(pharmacy, { linkToProfile = false } = {}) {
+      const km  = Nearby.distanceTo(pharmacy.location);
+      const dir = Nearby.directionsUrl(pharmacy.location);
+      const tel = Nearby.telUrl(pharmacy.phone);
+      return `
+        <div class="ds-place">
+          <span class="ds-tile">${icon('store')}</span>
+          <div class="ds-place-text">
+            <strong>${escapeHtml(pharmacy.name)}</strong>
+            ${pharmacy.address ? `<span>${icon('map-pin')}${escapeHtml(pharmacy.address)}</span>` : ''}
+            ${pharmacy.phone ? `<span>${icon('phone')}${escapeHtml(pharmacy.phone)}</span>` : ''}
+          </div>
+          ${km != null ? `<span class="ds-pill ds-pill-info">${icon('navigation')}${Nearby.formatDistance(km)}</span>` : ''}
+        </div>
+        <div class="ds-place-actions">
+          ${dir ? `<a class="ds-btn ds-btn-primary" href="${dir}" target="_blank" rel="noopener">${icon('navigation-2')}${i18n.t('near.directions')}</a>` : ''}
+          ${tel ? `<a class="ds-btn ds-btn-ghost" href="${tel}">${icon('phone')}${i18n.t('near.call')}</a>` : ''}
+          ${linkToProfile ? `<a class="ds-link" href="/pages/details?pharmacyId=${pharmacy._id}">${i18n.t('details.view_pharmacy')}${icon('chevron-right')}</a>` : ''}
+        </div>`;
+    }
+
+    function mapCard() {
+      return `
+        <div class="ds-panel ds-map-card">
+          <div id="detail-map" class="ds-map"></div>
+        </div>`;
+    }
+
+    /** Map with one pin for the pharmacy (price or name) and the user's dot when nearby */
+    function initMap(pharmacy, label) {
+      if (detailMap) { detailMap.remove(); detailMap = null; }
+      const { lat, lng } = pharmacy.location || {};
+      if (!lat && !lng) return;
+
+      detailMap = L.map('detail-map', { zoomControl: false, scrollWheelZoom: false }).setView([lat, lng], 15);
+      L.control.zoom({ position: 'bottomright' }).addTo(detailMap);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', maxZoom: 19
+      }).addTo(detailMap);
+      L.marker([lat, lng], {
+        icon: L.divIcon({ className: '', iconSize: null, iconAnchor: [0, 0], html: `<div class="ds-price-pin">${label}</div>` })
+      }).addTo(detailMap);
+
+      // Frame the user too when they're within reach
+      if (Nearby.showOnMap(detailMap) && Nearby.distanceTo(pharmacy.location) <= 30) {
+        detailMap.fitBounds([[lat, lng], [Nearby.location.lat, Nearby.location.lng]], { padding: [50, 50], maxZoom: 16 });
+      }
+    }
+
+    // ── MEDICINE VIEW (pharmacyId + medicineId) ─────────────────
     function renderMedicineDetails(container, pharmacy, med) {
       document.title = `${med.name} – MedFinder`;
       const avail = med.stock.isAvailable;
+      const price = `${escapeHtml(med.pricing.amount)} ${escapeHtml(med.pricing.currency)}`;
+
       container.innerHTML = `
-        <div class="details-layout">
-          <div>
-            <div class="med-hero"><span class="icon">💊</span><p style="opacity:.8;margin-top:.5rem;">${escapeHtml(med.name)}</p></div>
-            <div class="details-card">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:.75rem;">
-                <h1 class="details-title">${escapeHtml(med.name)}</h1>
-                <span class="badge ${avail ? 'badge-available' : 'badge-unavailable'}" style="white-space:nowrap;">
-                  ${avail ? '✓ ' + i18n.t('details.available') : '✗ ' + i18n.t('details.out_of_stock')}
-                </span>
-              </div>
-              <p style="color:var(--text-muted);margin-bottom:1.5rem;line-height:1.75;">${escapeHtml(med.description)}</p>
-              <div class="detail-row">
-                <div class="detail-icon">💰</div>
-                <div><div class="detail-label">${i18n.t('details.price')}</div>
-                  <div class="price-display">${escapeHtml(med.pricing.amount)} <span style="font-size:1.25rem;">${escapeHtml(med.pricing.currency)}</span></div>
+        <div class="ds-details-grid">
+          <div class="ds-details-main">
+            <section class="ds-panel ds-med-header">
+              <span class="ds-tile ds-tile-lg">${icon('pill')}</span>
+              <div class="ds-med-title">
+                <h1>${escapeHtml(med.name)}</h1>
+                ${med.description ? `<p>${escapeHtml(med.description)}</p>` : ''}
+                <div class="ds-card-meta">
+                  ${stockPill(med)}
+                  <span class="ds-stock-note">${avail
+                    ? i18n.t('details.units_in_stock', { count: escapeHtml(med.stock.quantity) })
+                    : i18n.t('details.currently_out')}</span>
                 </div>
               </div>
-              <div class="detail-row">
-                <div class="detail-icon">📦</div>
-                <div><div class="detail-label">${i18n.t('details.stock')}</div>
-                  <div class="detail-value">${avail
-                    ? `<span style="color:var(--secondary)">${i18n.t('details.units_in_stock', { count: med.stock.quantity })}</span>`
-                    : `<span style="color:var(--error)">${i18n.t('details.currently_out')}</span>`}</div>
-                </div>
+              <div class="ds-med-price ${avail ? '' : 'is-out'}">
+                <b>${escapeHtml(med.pricing.amount)}</b><small>${escapeHtml(med.pricing.currency)}</small>
               </div>
-            </div>
+            </section>
+
+            <section class="ds-panel">
+              <h2 class="ds-panel-title">${i18n.t('details.where')}</h2>
+              ${pharmacyBlock(pharmacy, { linkToProfile: true })}
+            </section>
+
+            <section class="ds-panel">
+              <h2 class="ds-panel-title">${i18n.t('compare.other_pharmacies')}</h2>
+              <div id="compare-inline"><p class="compare-loading">${icon('loader-circle', 'ds-spin')} ${i18n.t('search.searching')}</p></div>
+            </section>
           </div>
-          <div style="display:flex;flex-direction:column;gap:1.5rem;">
-            <div class="details-card">
-              <p style="font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:1rem;">🏥 ${i18n.t('details.pharm_details')}</p>
-              <div class="detail-row"><div class="detail-icon">🏥</div>
-                <div><div class="detail-label">${i18n.t('details.name')}</div><div class="detail-value">${escapeHtml(pharmacy.name)}</div></div>
-              </div>
-              <div class="detail-row"><div class="detail-icon">📍</div>
-                <div><div class="detail-label">${i18n.t('details.address')}</div><div class="detail-value">${escapeHtml(pharmacy.address || '—')}</div></div>
-              </div>
-              <div class="detail-row"><div class="detail-icon">📞</div>
-                <div><div class="detail-label">${i18n.t('details.phone')}</div>
-                  <div class="detail-value">${pharmacy.phone
-                    ? `<a href="tel:${escapeHtml(pharmacy.phone)}" style="color:var(--primary);">${escapeHtml(pharmacy.phone)}</a>`
-                    : '—'}</div>
-                </div>
-              </div>
-              ${Nearby.distanceTo(pharmacy.location) != null ? `
-              <div class="detail-row"><div class="detail-icon">🧭</div>
-                <div><div class="detail-label">${i18n.t('near.distance')}</div>
-                  <div class="detail-value" style="color:#2563eb;">${i18n.t('near.away', { distance: Nearby.formatDistance(Nearby.distanceTo(pharmacy.location)) })}</div>
-                </div>
-              </div>` : ''}
-              <div class="card-actions" style="padding:.875rem 0;border-bottom:1px solid var(--border);">${Nearby.actionButtons(pharmacy)}</div>
-              <div class="detail-row"><div class="detail-icon">🌍</div>
-                <div><div class="detail-label">${i18n.t('details.coords')}</div>
-                  <div class="detail-value" style="font-family:monospace;font-size:.85rem;">${pharmacy.location.lat.toFixed(4)}, ${pharmacy.location.lng.toFixed(4)}</div>
-                </div>
-              </div>
-            </div>
-            <div class="details-card" style="padding:1.25rem;">
-              <p style="font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:1rem;">📍 ${i18n.t('details.map_loc')}</p>
-              <div id="detail-map"></div>
-            </div>
-            <div class="details-card">
-              <p style="font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:1rem;">⚖️ ${i18n.t('compare.other_pharmacies')}</p>
-              <div id="compare-inline"><p class="compare-loading">⏳ ${i18n.t('search.searching')}</p></div>
-            </div>
-          </div>
+          <aside class="ds-details-side">${mapCard()}</aside>
         </div>`;
-      initDetailMap(pharmacy.location.lat, pharmacy.location.lng, pharmacy.name);
+
+      initMap(pharmacy, avail ? price : escapeHtml(pharmacy.name));
       loadInlineComparison(med.name, pharmacy._id);
     }
 
@@ -213,95 +201,53 @@
       const box = document.getElementById('compare-inline');
       try {
         const rows = await fetchComparison(medicineName);
+        if (!document.body.contains(box)) return; // re-rendered meanwhile
         box.innerHTML = rows.length > 1
           ? renderComparison(rows, { currentPharmacyId })
-          : `<p style="color:var(--text-muted);">${i18n.t('compare.only_here')}</p>`;
+          : `<p class="ds-muted">${i18n.t('compare.only_here')}</p>`;
       } catch (err) {
-        box.innerHTML = `<p style="color:var(--error);">❌ ${escapeHtml(err.message)}</p>`;
+        box.innerHTML = `<p class="ds-muted" style="color:var(--bad)">${escapeHtml(err.message)}</p>`;
       }
     }
 
-    // ── PHARMACY PROFILE VIEW (pharmacyId only) ─────────────────
+    // ── PHARMACY VIEW (pharmacyId only) ─────────────────────────
     function renderPharmacyProfile(container, pharmacy) {
       document.title = `${pharmacy.name} – MedFinder`;
-      const available = pharmacy.medicines.filter(m => m.stock.isAvailable);
+      const meds = [...pharmacy.medicines].sort((a, b) => (b.stock.isAvailable - a.stock.isAvailable) || a.name.localeCompare(b.name));
+      const available = meds.filter(m => m.stock.isAvailable).length;
 
-      const medItem = (med) => {
-        const avail = med.stock.isAvailable;
-        return `
-          <div class="med-list-item">
-            <div>
-              <div class="med-list-name">💊 ${escapeHtml(med.name)}</div>
-              <div class="med-list-meta">${escapeHtml(med.description)}</div>
-            </div>
-            <div class="med-list-right">
-              <span class="med-list-price">${escapeHtml(med.pricing.amount)} ${escapeHtml(med.pricing.currency)}</span>
-              <span class="badge ${avail ? 'badge-available' : 'badge-unavailable'}" style="font-size:.75rem;">
-                ${avail ? '✓ ' + i18n.t('details.available') : '✗ ' + i18n.t('details.out_of_stock')}
-              </span>
-            </div>
-          </div>`;
-      };
+      const medRow = (m) => `
+        <a class="ds-med-row ${m.stock.isAvailable ? '' : 'is-out'}" href="/pages/details?pharmacyId=${pharmacy._id}&medicineId=${m._id}">
+          <div class="ds-med-row-text">
+            <strong>${escapeHtml(m.name)}</strong>
+            ${m.description ? `<span>${escapeHtml(m.description)}</span>` : ''}
+          </div>
+          ${stockPill(m)}
+          <b class="ds-med-row-price">${escapeHtml(m.pricing.amount)} ${escapeHtml(m.pricing.currency)}</b>
+          ${icon('chevron-right', 'ds-med-row-chevron')}
+        </a>`;
 
       container.innerHTML = `
-        <div class="details-layout">
-          <div>
-            <div class="ph-hero">
-              <span class="icon">🏥</span>
-              <p style="opacity:.85;margin-top:.5rem;font-weight:700;">${escapeHtml(pharmacy.name)}</p>
-            </div>
-            <div class="details-card">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:.75rem;">
-                <h1 class="details-title">${escapeHtml(pharmacy.name)}</h1>
-                <span class="badge badge-available" style="white-space:nowrap;">${i18n.t('details.units_in_stock', { count: available.length })}</span>
+        <div class="ds-details-grid">
+          <div class="ds-details-main">
+            <section class="ds-panel">
+              ${pharmacyBlock(pharmacy)}
+            </section>
+
+            <section class="ds-panel">
+              <div class="ds-panel-head">
+                <h2 class="ds-panel-title">${i18n.t('details.all_meds')}</h2>
+                <span class="ds-muted">${i18n.t('details.listed_avail', { count: meds.length, avail: available })}</span>
               </div>
-              <div class="detail-row"><div class="detail-icon">📍</div>
-                <div><div class="detail-label">${i18n.t('details.address')}</div><div class="detail-value">${escapeHtml(pharmacy.address || '—')}</div></div>
-              </div>
-              <div class="detail-row"><div class="detail-icon">📞</div>
-                <div><div class="detail-label">${i18n.t('details.phone')}</div>
-                  <div class="detail-value">${pharmacy.phone
-                    ? `<a href="tel:${escapeHtml(pharmacy.phone)}" style="color:var(--primary);">${escapeHtml(pharmacy.phone)}</a>`
-                    : '—'}</div>
-                </div>
-              </div>
-              <div class="detail-row"><div class="detail-icon">💊</div>
-                <div><div class="detail-label">${i18n.t('details.total_meds')}</div>
-                  <div class="detail-value">${i18n.t('details.listed_avail', { count: pharmacy.medicines.length, avail: available.length })}</div>
-                </div>
-              </div>
-              ${Nearby.distanceTo(pharmacy.location) != null ? `
-              <div class="detail-row"><div class="detail-icon">🧭</div>
-                <div><div class="detail-label">${i18n.t('near.distance')}</div>
-                  <div class="detail-value" style="color:#2563eb;">${i18n.t('near.away', { distance: Nearby.formatDistance(Nearby.distanceTo(pharmacy.location)) })}</div>
-                </div>
-              </div>` : ''}
-              <div class="card-actions" style="padding:.875rem 0;border-bottom:1px solid var(--border);">${Nearby.actionButtons(pharmacy)}</div>
-              <div class="detail-row"><div class="detail-icon">🌍</div>
-                <div><div class="detail-label">${i18n.t('details.coords')}</div>
-                  <div class="detail-value" style="font-family:monospace;font-size:.85rem;">${pharmacy.location.lat.toFixed(4)}, ${pharmacy.location.lng.toFixed(4)}</div>
-                </div>
-              </div>
-            </div>
+              ${meds.length
+                ? `<div class="ds-med-list">${meds.map(medRow).join('')}</div>`
+                : `<p class="ds-muted">${i18n.t('details.no_meds_reg')}</p>`}
+            </section>
           </div>
-          <div style="display:flex;flex-direction:column;gap:1.5rem;">
-            <div class="details-card" style="padding:1.25rem;">
-              <p style="font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:1rem;">📍 ${i18n.t('details.map_loc')}</p>
-              <div id="detail-map"></div>
-            </div>
-            <div class="details-card">
-              <p style="font-size:.7rem;text-transform:uppercase;font-weight:700;color:var(--text-muted);letter-spacing:.1em;margin-bottom:1rem;">
-                💊 ${i18n.t('details.all_meds')} (${pharmacy.medicines.length})
-              </p>
-              ${pharmacy.medicines.length
-                ? `<div class="med-list">${pharmacy.medicines.map(medItem).join('')}</div>`
-                : `<p style="color:var(--text-muted);text-align:center;padding:1.5rem;">${i18n.t('details.no_meds_reg')}</p>`
-              }
-            </div>
-          </div>
+          <aside class="ds-details-side">${mapCard()}</aside>
         </div>`;
 
-      initDetailMap(pharmacy.location.lat, pharmacy.location.lng, pharmacy.name);
+      initMap(pharmacy, escapeHtml(pharmacy.name));
     }
   </script>
 </body>

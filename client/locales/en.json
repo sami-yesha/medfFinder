@@ -97,7 +97,10 @@
     "total_meds": "Total Medicines",
     "listed_avail": "{{count}} listed ({{avail}} available)",
     "all_meds": "All Medicines",
-    "no_meds_reg": "No medicines registered yet."
+    "no_meds_reg": "No medicines registered yet.",
+    "back_search": "Back to search",
+    "where": "Where to get it",
+    "view_pharmacy": "All medicines here"
   },
   "admin": {
     "dashboard": "Dashboard",

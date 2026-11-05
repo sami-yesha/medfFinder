@@ -97,7 +97,10 @@
     "total_meds": "ጠቅላላ መድሃኒቶች",
     "listed_avail": "{{count}} ተመዝግበዋል ({{avail}} በክምችት ላይ)",
     "all_meds": "ሁሉም መድሃኒቶች",
-    "no_meds_reg": "እስካሁን ምንም መድሃኒት አልተመዘገበም።"
+    "no_meds_reg": "እስካሁን ምንም መድሃኒት አልተመዘገበም።",
+    "back_search": "ወደ ፍለጋ ተመለስ",
+    "where": "የት ያገኙታል",
+    "view_pharmacy": "እዚህ ያሉ ሁሉም መድኃኒቶች"
   },
   "admin": {
     "dashboard": "ዳሽቦርድ",
