@@ -33,6 +33,9 @@ function renderComparison(rows, { currentPharmacyId = null } = {}) {
 
   const cheapest = inStock[0];
   const nearest  = inStock.filter(r => r.distance != null).sort((a, b) => a.distance - b.distance)[0];
+  // Everyone tied at the lowest price is "Cheapest", unless all are the same price
+  const tiedCheapest = cheapest ? inStock.filter(r => r.medicine.pricing.amount === cheapest.medicine.pricing.amount) : [];
+  const tagCheapest  = tiedCheapest.length < inStock.length;
   const savings  = inStock.length > 1 ? inStock[inStock.length - 1].medicine.pricing.amount - cheapest.medicine.pricing.amount : 0;
 
   const summary = cheapest
@@ -45,7 +48,7 @@ function renderComparison(rows, { currentPharmacyId = null } = {}) {
   const row = (r) => {
     const avail = r.medicine.stock.isAvailable;
     const tags = [
-      r === cheapest && inStock.length > 1 ? `<span class="compare-tag tag-cheapest">${i18n.t('compare.cheapest')}</span>` : '',
+      tagCheapest && tiedCheapest.includes(r) ? `<span class="compare-tag tag-cheapest">${i18n.t('compare.cheapest')}</span>` : '',
       r === nearest  && inStock.length > 1 ? `<span class="compare-tag tag-nearest">${i18n.t('compare.nearest')}</span>` : '',
       r.pharmacy._id === currentPharmacyId ? `<span class="compare-tag tag-current">${i18n.t('compare.this_pharmacy')}</span>` : ''
     ].join('');

@@ -120,18 +120,25 @@ function renderCards(results) {
 
   lastResults = results;
   nameCounts = {};
-  const cheapestByName = {};
+  const minPrice = {};   // lowest in-stock price per name
   results.forEach(r => {
     const key = normalizeName(r.medicine.name);
     nameCounts[key] = (nameCounts[key] || 0) + 1;
-    if (r.medicine.stock.isAvailable && (!cheapestByName[key] || r.medicine.pricing.amount < cheapestByName[key].pricing.amount)) {
-      cheapestByName[key] = r.medicine;
+    if (r.medicine.stock.isAvailable && !(minPrice[key] <= r.medicine.pricing.amount)) {
+      minPrice[key] = r.medicine.pricing.amount;
     }
   });
-  // Only tag "Cheapest" when there's something to be cheaper than
-  cheapestIds = new Set(Object.entries(cheapestByName)
-    .filter(([key]) => nameCounts[key] > 1)
-    .map(([, med]) => med._id));
+  // Every offer tied at the lowest price gets "Cheapest" — but only when some
+  // listing of that medicine isn't at that price (otherwise nothing is cheaper)
+  const atMin = r => r.medicine.stock.isAvailable && r.medicine.pricing.amount === minPrice[normalizeName(r.medicine.name)];
+  const tiedCount = {};
+  results.filter(atMin).forEach(r => {
+    const key = normalizeName(r.medicine.name);
+    tiedCount[key] = (tiedCount[key] || 0) + 1;
+  });
+  cheapestIds = new Set(results
+    .filter(r => atMin(r) && tiedCount[normalizeName(r.medicine.name)] < nameCounts[normalizeName(r.medicine.name)])
+    .map(r => r.medicine._id));
 
   if (!popularShown && !lastQuery) {
     popularShown = true;
